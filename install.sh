@@ -179,7 +179,6 @@ install_app_configs() {
     create_symlink "$DOTFILES_DIR/config/gtk-3.0/bookmarks" "$HOME/.config/gtk-3.0/bookmarks"
     create_symlink "$DOTFILES_DIR/config/imv/config" "$HOME/.config/imv/config"
     create_symlink "$DOTFILES_DIR/config/obsidian/user-flags.conf" "$HOME/.config/obsidian/user-flags.conf"
-    create_symlink "$DOTFILES_DIR/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
     create_symlink "$DOTFILES_DIR/config/chromium-flags.conf" "$HOME/.config/chromium-flags.conf"
     create_symlink "$DOTFILES_DIR/config/mimeapps.list" "$HOME/.config/mimeapps.list"
 
