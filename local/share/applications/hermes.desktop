@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Hermes
+Comment=Hermes AI Assistant
+Exec=hermes desktop
+Icon=hermes
+Terminal=false
+Type=Application
+Categories=Development;
+Keywords=hermes;ai;assistant;
+StartupNotify=false

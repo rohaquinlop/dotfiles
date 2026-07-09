@@ -1,0 +1,42 @@
+# Backups
+*.bak
+*.bak.*
+.dotfiles-backup-*/
+
+# Sensitive files
+config/gh/hosts.yml
+home/.ssh/
+local/share/icons/hicolor/index.theme
+
+# Generated files
+config/nvim/lazy-lock.json
+config/nvim/.gitignore
+config/nvim/LICENSE
+config/nvim/README.md
+config/lazygit/config.yml
+
+# Editor temp files
+*~
+*.swp
+*.swo
+.*.swp
+.*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Encrypted files
+*.gpg
+*.age
+
+# Node modules (if any)
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Rust
+target/
