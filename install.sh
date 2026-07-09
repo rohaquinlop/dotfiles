@@ -279,7 +279,7 @@ install_desktop_entries() {
     log_info "Installing desktop entries and icons..."
 
     local desktop_files=(
-        hermes.desktop Discord.desktop YAPYAP.desktop
+        Discord.desktop YAPYAP.desktop
         "DAVE THE DIVER.desktop" "Disk Usage.desktop"
         Docker.desktop mpv.desktop typora.desktop
     )

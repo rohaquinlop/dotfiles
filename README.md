@@ -142,7 +142,6 @@ These scripts are not tracked in the repo. Recreate them manually if needed:
 | `opencode` | npx wrapper for `opencode-ai` |
 | `pi` | npx wrapper for `@earendil-works/pi-coding-agent` |
 | `playwright-cli` | npx wrapper for `playwright` |
-| `hermes` | Hermes AI launcher |
 
 These are simple npx wrappers that resolve `node@latest` via mise and execute the package binary.
 
