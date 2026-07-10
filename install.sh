@@ -373,7 +373,8 @@ install_system_files() {
             [ -f "$service" ] || continue
             local svc_name=$(basename "$service")
             sudo cp "$service" "/etc/systemd/system/$svc_name"
-            log_success "Installed systemd service: $svc_name"
+            sudo systemctl enable "$svc_name"
+            log_success "Installed and enabled systemd service: $svc_name"
         done
         sudo systemctl daemon-reload
     fi
