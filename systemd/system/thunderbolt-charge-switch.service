@@ -1,0 +1,10 @@
+[Unit]
+Description=Switch ThinkPad charging thresholds based on desk state
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flock --nonblock /run/thunderbolt-charge-switch.lock /usr/local/bin/thinkpad-desk-mode.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,1 +1,1 @@
-ACTION="change", SUBSYSTEM=="drm", RUN+="/usr/bin/systemctl start thunderbolt-charge-switch.service"
+ACTION=="change", SUBSYSTEM=="drm", ENV{HOTPLUG}=="1", RUN+="/usr/bin/systemctl start thunderbolt-charge-switch.service"
