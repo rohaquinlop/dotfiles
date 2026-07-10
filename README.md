@@ -89,7 +89,7 @@ dotfiles add -A && dotfiles commit -m "Update config" && dotfiles push
 - **SwayOSD** — On-screen display
 
 ### Terminals
-- **Ghostty** — Primary terminal
+- **Alacritty** — Primary terminal
 - **Foot** — Lightweight terminal
 - **Kitty** — GPU-accelerated terminal
 

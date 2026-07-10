@@ -107,7 +107,7 @@ install_hyprland_configs() {
 install_terminal_configs() {
     log_info "Installing terminal configurations..."
 
-    create_symlink "$DOTFILES_DIR/config/ghostty/config" "$HOME/.config/ghostty/config"
+    create_symlink "$DOTFILES_DIR/config/alacritty/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
     create_symlink "$DOTFILES_DIR/config/foot/foot.ini" "$HOME/.config/foot/foot.ini"
     create_symlink "$DOTFILES_DIR/config/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
 
