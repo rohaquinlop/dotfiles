@@ -9,6 +9,12 @@
 
 # Add your own customizations below
 
+# Bun global binaries
+export PATH="$HOME/.cache/.bun/bin:$PATH"
+
+# Aliases
+alias oc='opencode'
+
 # Git shortcuts (extending Omarchy's g, gcm, gcam)
 alias gaa='git add --all'
 alias gcb='git checkout -b'

@@ -56,14 +56,14 @@
   },
 
   "cpu": {
-    "interval": 3,
+    "interval": 15,
     "format": "󰍛 {usage}%",
     "on-click": "omarchy-launch-or-focus-tui btop",
     "on-click-right": "alacritty"
   },
   "temperature": {
     "thermal-zone": 6,
-    "interval": 3,
+    "interval": 15,
     "format": "{icon} {temperatureC}°C",
     "format-icons": ["󰈸", "󰈸", "󰈸"],
     "critical-threshold": 90,
@@ -92,7 +92,7 @@
     "tooltip-format-wifi": "{essid} ({frequency} GHz)",
     "tooltip-format-ethernet": "Connected",
     "tooltip-format-disconnected": "Disconnected",
-    "interval": 3,
+    "interval": 10,
     "spacing": 1,
     "on-click": "omarchy-launch-wifi"
   },
@@ -108,7 +108,7 @@
     "format-full": "󰂅",
     "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%",
     "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%",
-    "interval": 5,
+    "interval": 15,
     "on-click": "omarchy-menu power",
     "on-click-right": "notify-send -u low \"$(omarchy-battery-status)\"",
     "states": {
