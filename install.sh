@@ -367,6 +367,17 @@ install_system_files() {
         fi
     done
 
+    # Systemd system services
+    if [ -d "$DOTFILES_DIR/systemd/system" ]; then
+        for service in "$DOTFILES_DIR/systemd/system/"*.service; do
+            [ -f "$service" ] || continue
+            local svc_name=$(basename "$service")
+            sudo cp "$service" "/etc/systemd/system/$svc_name"
+            log_success "Installed systemd service: $svc_name"
+        done
+        sudo systemctl daemon-reload
+    fi
+
     # Reload udev rules
     sudo udevadm control --reload-rules
     sudo udevadm trigger
