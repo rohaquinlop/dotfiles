@@ -2,32 +2,66 @@
 
 Personal Omarchy/Hyprland configuration for ThinkPad X1 Carbon Gen 9.
 
+Managed with [GNU Stow](https://www.gnu.org/software/stow/).
+
 ## Fresh Install
 
 ```bash
 git clone https://github.com/rohaquinlop/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
-chmod +x install.sh
 ./install.sh
 ```
 
 The install script will:
-- Backup any existing configs before overwriting
-- Create symlinks from `~/.dotfiles/` to their original locations
-- Clone the zsh-hooks plugin
+- Stow all user config packages using `stow --no-folding`
+- Install Hyprland config via manual symlinks (Hyprland watchdog overwrites directory symlinks)
+- Enable systemd user services
 - Install system-level files (udev rules, scripts) with sudo
 - Reload Hyprland, Waybar, and Walker
 
 ## How It Works
 
-Configs live in `~/.dotfiles/` and are symlinked to their original locations.
+Configs live in `~/.dotfiles/` as stow packages. Each package mirrors the target directory structure under `~`.
 
 ```
-~/.dotfiles/config/hypr/bindings.conf  →  ~/.config/hypr/bindings.conf
-~/.dotfiles/home/.zshrc                →  ~/.zshrc
+~/.dotfiles/hypr/.config/hypr/bindings.conf  →  ~/.config/hypr/bindings.conf
+~/.dotfiles/shell/.bashrc                     →  ~/.bashrc
+~/.dotfiles/kitty/.config/kitty/kitty.conf    →  ~/.config/kitty/kitty.conf
 ```
 
 When you edit `~/.config/hypr/bindings.conf`, you're actually editing the file in the repo. Changes are tracked automatically.
+
+## Stow Packages
+
+| Package | Target | Description |
+|---------|--------|-------------|
+| `shell` | `~/` | Shell configs (.bashrc, .zshrc, .profile, .bash_profile) |
+| `hypr` | `~/.config/hypr/` | Hyprland window manager (manual symlinks) |
+| `alacritty` | `~/.config/alacritty/` | Alacritty terminal |
+| `foot` | `~/.config/foot/` | Foot terminal |
+| `kitty` | `~/.config/kitty/` | Kitty terminal |
+| `ghostty` | `~/.config/ghostty/` | Ghostty terminal |
+| `nvim` | `~/.config/nvim/` | Neovim (LazyVim) |
+| `starship` | `~/.config/starship.toml` | Starship prompt |
+| `btop` | `~/.config/btop/` | System monitor |
+| `tmux` | `~/.config/tmux/` | Terminal multiplexer |
+| `git` | `~/.config/git/` | Git configuration |
+| `gh` | `~/.config/gh/` | GitHub CLI |
+| `lazygit` | `~/.config/lazygit/` | Git TUI |
+| `mise` | `~/.config/mise/` | Runtime version manager |
+| `mako` | `~/.config/mako/` | Notification daemon |
+| `swayosd` | `~/.config/swayosd/` | On-screen display |
+| `walker` | `~/.config/walker/` | Application launcher |
+| `waybar` | `~/.config/waybar/` | Status bar |
+| `elephant` | `~/.config/elephant/` | Walker plugin menus |
+| `omarchy` | `~/.config/omarchy/` | Omarchy themes, branding, hooks |
+| `opencode` | `~/.config/opencode/` | Opencode AI assistant |
+| `fcitx5` | `~/.config/fcitx5/` | Input method + environment.d |
+| `config-misc` | `~/.config/` | Loose configs (chromium-flags, mimeapps, autostart, fontconfig, gtk, imv, obsidian) |
+| `systemd-user` | `~/.config/systemd/user/` | Systemd user services |
+| `desktop-entries` | `~/.local/share/applications/` | Desktop entries and app icons |
+| `local-icons` | `~/.local/share/icons/` | Hicolor icon theme |
+| `local-state` | `~/.local/state/` | Omarchy toggle state |
 
 ## Daily Workflow
 
@@ -59,9 +93,6 @@ git add -A && git commit -m "Switch to catppuccin mocha" && git push
 
 # New tmux config
 git add -A && git commit -m "Add tmux split shortcuts" && git push
-
-# Updated starship prompt
-git add -A && git commit -m "Update starship prompt style" && git push
 ```
 
 ### Quick Alias (Optional)
@@ -72,78 +103,51 @@ Add to your `~/.zshrc`:
 alias dotfiles='cd ~/.dotfiles && git'
 ```
 
-Then use:
+## Adding New Configs
+
+To track a new config file with stow:
 
 ```bash
-dotfiles status
-dotfiles add -A && dotfiles commit -m "Update config" && dotfiles push
+# Create the package structure
+mkdir -p ~/.dotfiles/new-app/.config/new-app
+
+# Move the file
+mv ~/.config/new-app/config ~/.dotfiles/new-app/.config/new-app/config
+
+# Stow it
+cd ~/.dotfiles
+stow --no-folding -t ~ new-app
+
+# Commit
+git add -A
+git commit -m "Add new-app config"
+git push
 ```
 
-## What's Included
+## Stowing Individual Packages
 
-### Window Manager & Desktop
-- **Hyprland** — Window manager, keybindings, monitors, idle/lock, gaming rules
-- **Waybar** — Status bar
-- **Walker** — Application launcher
-- **Mako** — Notification daemon
-- **SwayOSD** — On-screen display
+You can stow/unstow individual packages:
 
-### Terminals
-- **Alacritty** — Primary terminal
-- **Foot** — Lightweight terminal
-- **Kitty** — GPU-accelerated terminal
+```bash
+cd ~/.dotfiles
 
-### Editor & Shell
-- **Neovim** — LazyVim configuration with catppuccin theme
-- **Starship** — Cross-shell prompt
-- **tmux** — Terminal multiplexer
-- **btop** — System monitor
+# Stow a single package
+stow --no-folding -t ~ kitty
 
-### Tools
-- **Git** — Git configuration
-- **GitHub CLI** — gh configuration (excludes auth token)
-- **fastfetch** — System info display
-- **lazygit** — Git TUI
-- **mise** — Runtime version manager
-- **imv** — Image viewer
+# Unstow a single package
+stow -D -t ~ kitty
 
-### Omarchy Ecosystem
-- **Themes** — Catppuccin theme files for all apps
-- **Hooks** — Custom theme-set hook
-- **Branding** — ASCII art logos
-- **Elephant** — Walker plugin menus (theme selector, background selector)
-
-### System
-- **udev rules** — Battery thresholds, power profiles, WiFi powersave, Vial keyboard
-- **thinkpad-desk-mode.sh** — Battery management based on external monitor detection
-- **Systemd services** — Battery monitor, internal monitor recovery, swayosd, elephant, walker
-
-### Desktop Entries & Icons
-- Custom desktop entries for Hermes, Discord, Steam games, TUI apps
-- Custom icons for web apps (WhatsApp, YouTube, GitHub, etc.)
+# Dry-run (see what would happen)
+stow --no-folding -n -v -t ~ kitty
+```
 
 ## What's Excluded
 
 - `~/.ssh/` — SSH keys and known_hosts
-- `~/.local/bin/` — Custom scripts and binaries (see below)
+- `~/.local/bin/` — Custom scripts and binaries
 - `~/.config/gh/hosts.yml` — GitHub authentication token
 - `~/.config/nvim/lazy-lock.json` — Generated plugin lockfile
-- `~/.config/zsh/plugins/zsh-hooks/` — Re-cloned by install script
 - `~/.cargo/env` — Auto-generated by rustup
-
-## Custom Scripts (~/.local/bin/)
-
-These scripts are not tracked in the repo. Recreate them manually if needed:
-
-| Script | Purpose |
-|--------|---------|
-| `gemini` | npx wrapper for `@google/gemini-cli` |
-| `ghui` | npx wrapper for `@kitlangton/ghui` |
-| `opencode` | npx wrapper for `opencode-ai` |
-| `pi` | npx wrapper for `@earendil-works/pi-coding-agent` |
-| `playwright-cli` | npx wrapper for `playwright` |
-
-These are simple npx wrappers that resolve `node@latest` via mise and execute the package binary.
 
 ## System-Level Files
 
@@ -175,35 +179,3 @@ The following files require `sudo` to install and are copied (not symlinked):
    omarchy pkg install <packages>
    ```
 5. Recreate `~/.local/bin/` scripts if needed
-
-## Adding New Configs
-
-To track a new config file:
-
-```bash
-# Move the file to the repo
-mv ~/.config/new-app/config ~/.dotfiles/config/new-app/config
-
-# Create symlink
-ln -s ~/.dotfiles/config/new-app/config ~/.config/new-app/config
-
-# Commit
-cd ~/.dotfiles
-git add -A
-git commit -m "Add new-app config"
-git push
-```
-
-## Restoring Backups
-
-If the install script backed up existing files, they're saved to:
-
-```
-~/.dotfiles-backup-YYYYMMDDHHMMSS/
-```
-
-You can restore them manually if needed:
-
-```bash
-cp ~/.dotfiles-backup-YYYYMMDDHHMMSS/.config/hypr/bindings.conf ~/.config/hypr/bindings.conf
-```

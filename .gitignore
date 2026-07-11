@@ -4,16 +4,16 @@
 .dotfiles-backup-*/
 
 # Sensitive files
-config/gh/hosts.yml
-home/.ssh/
-local/share/icons/hicolor/index.theme
+gh/gh/hosts.yml
+shell/.ssh/
+local-icons/icons/hicolor/index.theme
 
 # Generated files
-config/nvim/lazy-lock.json
-config/nvim/.gitignore
-config/nvim/LICENSE
-config/nvim/README.md
-config/lazygit/config.yml
+nvim/nvim/lazy-lock.json
+nvim/nvim/.gitignore
+nvim/nvim/LICENSE
+nvim/nvim/README.md
+lazygit/lazygit/config.yml
 
 # Editor temp files
 *~
