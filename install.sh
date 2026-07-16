@@ -88,6 +88,16 @@ install_system_files() {
     log_ok "udev rule: $(basename "$rule")"
   done
 
+  if [ -d system/keyd ]; then
+    sudo mkdir -p /etc/keyd
+    for conf in system/keyd/*.conf; do
+      [ -f "$conf" ] || continue
+      sudo cp "$conf" "/etc/keyd/$(basename "$conf")"
+      log_ok "keyd config: $(basename "$conf")"
+    done
+    sudo systemctl enable --now keyd 2>/dev/null && log_ok "keyd.service"
+  fi
+
   for script in system/local/bin/*; do
     [ -f "$script" ] || continue
     sudo cp "$script" "/usr/local/bin/$(basename "$script")"
