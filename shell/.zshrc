@@ -4,6 +4,15 @@
 # Load zsh options, keybindings, and completion
 [[ -f /usr/share/omarchy-zsh/shell/zoptions ]] && source /usr/share/omarchy-zsh/shell/zoptions
 
+# History-based inline autosuggestions (accept with → or End)
+[[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+  source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# oh-my-zsh git plugin — loaded before omarchy/user aliases so theirs take precedence
+source ~/.config/zsh/plugins/git/git.plugin.zsh 2>/dev/null
+# omarchy defines ga() and gd() as worktree functions — clear plugin aliases first
+unalias ga gd 2>/dev/null
+
 # Load shared shell configuration (aliases, functions, environment, tool init)
 [[ -f /usr/share/omarchy-zsh/shell/all ]] && source /usr/share/omarchy-zsh/shell/all
 
