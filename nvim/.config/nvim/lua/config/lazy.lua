@@ -51,3 +51,7 @@ require("lazy").setup({
     },
   },
 })
+
+-- Load user keymaps and autocmds (the omarchy starter does not load these itself)
+require("config.keymaps")
+require("config.autocmds")
