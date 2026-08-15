@@ -1,2 +1,4 @@
 [tools]
+codex = "latest"
 node = "26.2.0"
+pi = "latest"
