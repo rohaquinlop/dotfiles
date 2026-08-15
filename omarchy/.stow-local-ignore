@@ -1,0 +1,3 @@
+# Legacy applied-theme state. The quattro upgrade moved it to
+# ~/.local/state/omarchy/current; do not re-create the old path.
+current
