@@ -3,17 +3,18 @@
 -- Caps Lock remapping is handled by keyd at evdev level, so Omarchy's
 -- CapsLock-as-compose default is disabled here.
 hl.config({
-  input = {
-    kb_options = "",
+	input = {
+		kb_options = "",
 
-    -- Trackpad/mouse pointer sensitivity (default: 0).
-    sensitivity = 0.25,
+		-- Trackpad/mouse pointer sensitivity (default: 0).
+		sensitivity = 0.25,
+		natural_scroll = true,
 
-    touchpad = {
-      -- Natural (inverse) scrolling.
-      natural_scroll = true,
-    },
-  },
+		touchpad = {
+			-- Natural (inverse) scrolling.
+			natural_scroll = true,
+		},
+	},
 })
 
 -- Realtek A5 Ultra mouse tweaks (scroll speed and sensitivity).
