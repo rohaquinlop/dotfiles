@@ -9,10 +9,6 @@ shell/.ssh/
 local-icons/icons/hicolor/index.theme
 
 # Generated files
-nvim/nvim/lazy-lock.json
-nvim/nvim/.gitignore
-nvim/nvim/LICENSE
-nvim/nvim/README.md
 lazygit/lazygit/config.yml
 
 # Editor temp files

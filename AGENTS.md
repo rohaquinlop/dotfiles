@@ -55,7 +55,8 @@ stow --no-folding -t ~ new-pkg
 - `gh/gh/hosts.yml` — GitHub auth token
 - `shell/.ssh/` — SSH keys
 - `lazygit/lazygit/config.yml` — contains credentials
-- `nvim/.config/nvim/lazy-lock.json` — generated lockfile
+
+`nvim/.config/nvim/lazy-lock.json` is intentionally tracked: it pins plugin versions so both machines stay in sync. Commit it after running `:Lazy update`.
 
 ## Commit Conventions
 
