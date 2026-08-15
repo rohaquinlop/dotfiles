@@ -64,6 +64,34 @@ When you edit `~/.config/hypr/bindings.conf`, you're actually editing the file i
 | `local-icons` | `~/.local/share/icons/` | Hicolor icon theme |
 | `local-state` | `~/.local/state/` | Omarchy toggle state |
 
+## Syncing Between Machines
+
+This repo is the single source of truth for the Omarchy laptop and the MacBook.
+After pulling changes on the other machine:
+
+```bash
+cd ~/.dotfiles && git pull
+stow --no-folding -t ~ nvim   # new plugin files need re-stowing
+```
+
+If `~/.config/herdr/config.toml` already exists there as a regular file, back it
+up before stowing herdr (stow refuses to overwrite):
+
+```bash
+mv ~/.config/herdr/config.toml ~/.config/herdr/config.toml.bak
+stow --no-folding -t ~ herdr
+```
+
+For nvim, the lockfile pins plugin versions. After pulling:
+
+1. Run `nvim` once — new plugins auto-install.
+2. Run `:Lazy sync` to align all plugins to the committed `lazy-lock.json`.
+3. Check `:Mason` — ruff, pyright, and efm-langserver must be installed.
+4. `nvim --version` must be 0.11 or newer (LazyVim requirement).
+
+Starship and alacritty need no per-machine work — both packages are already
+stowed on the Omarchy laptop.
+
 ## Daily Workflow
 
 After changing any config:
