@@ -19,6 +19,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 STOW_PACKAGES=(
   shell alacritty foot kitty ghostty
   nvim starship btop tmux git gh lazygit mise
+  herdr
   mako swayosd walker waybar elephant omarchy opencode
   fcitx5 config-misc systemd-user
   desktop-entries local-icons local-state

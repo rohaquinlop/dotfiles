@@ -1,0 +1,25 @@
+# onboarding = false
+
+[theme]
+name = "catppuccin"
+auto_switch = false
+
+[ui.toast]
+delivery = "terminal"
+
+[ui.sound]
+enabled = false
+
+[ui]
+show_agent_labels_on_pane_borders = true
+
+agent_panel_sort = "priority"
+
+[keys]
+prefix = "ctrl+a"
+# switch_tab = "alt+1..9"
+# cycle_pane_next = "ctrl+alt+tab"
+# cycle_pane_previous = "ctrl+alt+shift+tab"
+
+split_vertical = "super+backslash"
+split_horizontal = "super+slash"

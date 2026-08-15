@@ -56,6 +56,7 @@ When you edit `~/.config/hypr/bindings.conf`, you're actually editing the file i
 | `elephant` | `~/.config/elephant/` | Walker plugin menus |
 | `omarchy` | `~/.config/omarchy/` | Omarchy themes, branding, hooks |
 | `opencode` | `~/.config/opencode/` | Opencode AI assistant |
+| `herdr` | `~/.config/herdr/` | Herdr TUI settings (pi coding agent) |
 | `fcitx5` | `~/.config/fcitx5/` | Input method + environment.d |
 | `config-misc` | `~/.config/` | Loose configs (chromium-flags, mimeapps, autostart, fontconfig, gtk, imv, obsidian) |
 | `systemd-user` | `~/.config/systemd/user/` | Systemd user services |
