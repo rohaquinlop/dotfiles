@@ -48,3 +48,12 @@ local function goto_reference(dir)
 end
 map("n", "]l", goto_reference(1), { desc = "Helix: next reference" })
 map("n", "[l", goto_reference(-1), { desc = "Helix: prev reference" })
+
+-- Wrap-aware j/k (ported from the MacBook config): move by screen line when
+-- the line is wrapped, by logical line when a count is given.
+map("n", "j", function()
+  return vim.v.count == 0 and "gj" or "j"
+end, { expr = true, silent = true, desc = "Down (wrap-aware)" })
+map("n", "k", function()
+  return vim.v.count == 0 and "gk" or "k"
+end, { expr = true, silent = true, desc = "Up (wrap-aware)" })
