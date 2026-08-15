@@ -1,4 +1,7 @@
 [tools]
 codex = "latest"
 node = "26.2.0"
-pi = "latest"
+pi = "0.84.2"
+
+[settings]
+npm.shell_out = true

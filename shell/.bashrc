@@ -14,4 +14,7 @@ fi
 [[ -f /usr/share/omarchy-zsh/shell/all ]] && source /usr/share/omarchy-zsh/shell/all
 
 # Add your own exports, aliases, and functions below.
+# Force mise to install pi from npm (the aqua/GitHub-release build can't load
+# user extensions with external deps, e.g. pdf-parse/jsdom).
+export MISE_BACKENDS_PI="npm:@earendil-works/pi-coding-agent"
 . "$HOME/.cargo/env"

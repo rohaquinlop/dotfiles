@@ -17,6 +17,9 @@ unalias ga gd 2>/dev/null
 [[ -f /usr/share/omarchy-zsh/shell/all ]] && source /usr/share/omarchy-zsh/shell/all
 
 # Add your own customizations below
+# Force mise to install pi from npm (the aqua/GitHub-release build can't load
+# user extensions with external deps, e.g. pdf-parse/jsdom).
+export MISE_BACKENDS_PI="npm:@earendil-works/pi-coding-agent"
 
 # Bun global binaries
 export PATH="$HOME/.cache/.bun/bin:$PATH"
