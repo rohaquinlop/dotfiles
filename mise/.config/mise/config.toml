@@ -1,2 +1,6 @@
 [tools]
+codex = "latest"
 node = "26.2.0"
+
+[settings]
+npm.shell_out = true

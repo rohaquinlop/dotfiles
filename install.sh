@@ -76,7 +76,6 @@ enable_systemd_services() {
   log_info "Enabling systemd user services..."
   systemctl --user enable elephant.service 2>/dev/null && log_ok "elephant.service"
   systemctl --user enable swayosd-server.service 2>/dev/null && log_ok "swayosd-server.service"
-  systemctl --user enable omarchy-battery-monitor.timer 2>/dev/null && log_ok "omarchy-battery-monitor.timer"
   systemctl --user enable omarchy-recover-internal-monitor.service 2>/dev/null && log_ok "omarchy-recover-internal-monitor.service"
 }
 

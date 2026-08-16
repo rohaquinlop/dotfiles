@@ -1,4 +1,4 @@
-# onboarding = false
+onboarding = false
 
 [theme]
 name = "catppuccin"
@@ -23,3 +23,9 @@ cycle_pane_previous = "ctrl+shift+tab"
 
 split_vertical = "super+backslash"
 split_horizontal = "super+slash"
+
+[terminal]
+# Spawn zsh directly in new panes instead of $SHELL (which the Omarchy Quattro
+# migration reset to bash). The .bashrc exec-zsh auto-launch skips herdr panes
+# because they inherit SHLVL > 1, leaving panes on bash without zsh aliases.
+default_shell = "/usr/bin/zsh"
