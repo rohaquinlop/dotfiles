@@ -28,4 +28,7 @@ split_horizontal = "super+slash"
 # Spawn zsh directly in new panes instead of $SHELL (which the Omarchy Quattro
 # migration reset to bash). The .bashrc exec-zsh auto-launch skips herdr panes
 # because they inherit SHLVL > 1, leaving panes on bash without zsh aliases.
-default_shell = "/usr/bin/zsh"
+# Note: /usr/bin/zsh does not exist on macOS; the real path is /bin/zsh.
+# Bare "zsh" resolves via PATH on both macOS (/bin/zsh) and NixOS/Omarchy
+# (/run/current-system/sw/bin/zsh), keeping this config cross-platform.
+default_shell = "zsh"
