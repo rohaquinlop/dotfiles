@@ -17,7 +17,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Packages that work with normal stow (--no-folding)
 STOW_PACKAGES=(
-  shell alacritty foot kitty ghostty
+  shell alacritty foot kitty
   nvim starship btop tmux git gh lazygit mise
   herdr
   mako swayosd walker waybar elephant omarchy opencode

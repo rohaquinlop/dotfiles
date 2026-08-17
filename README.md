@@ -40,7 +40,6 @@ When you edit `~/.config/hypr/bindings.conf`, you're actually editing the file i
 | `alacritty` | `~/.config/alacritty/` | Alacritty terminal |
 | `foot` | `~/.config/foot/` | Foot terminal |
 | `kitty` | `~/.config/kitty/` | Kitty terminal |
-| `ghostty` | `~/.config/ghostty/` | Ghostty terminal |
 | `nvim` | `~/.config/nvim/` | Neovim (LazyVim) |
 | `starship` | `~/.config/starship.toml` | Starship prompt |
 | `btop` | `~/.config/btop/` | System monitor |
