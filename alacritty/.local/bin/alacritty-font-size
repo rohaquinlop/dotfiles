@@ -1,0 +1,40 @@
+#!/bin/sh
+# Adjust the machine-local Alacritty font size and persist it.
+# Alacritty watches its imported config files, so the change applies live.
+set -eu
+
+DEFAULT_SIZE=11
+MIN_SIZE=6
+MAX_SIZE=48
+
+conf="${XDG_CONFIG_HOME:-$HOME/.config}/alacritty/local.toml"
+
+current=$DEFAULT_SIZE
+if [ -f "$conf" ]; then
+  found=$(sed -n 's/^[[:space:]]*size[[:space:]]*=[[:space:]]*\([0-9.]*\).*/\1/p' "$conf" | head -1)
+  [ -n "$found" ] && current=$found
+fi
+
+case "${1:-}" in
+  up|+*)   target=$(awk -v c="$current" 'BEGIN{printf "%g", c+1}') ;;
+  down|-*) target=$(awk -v c="$current" 'BEGIN{printf "%g", c-1}') ;;
+  reset)   target=$DEFAULT_SIZE ;;
+  ''|*[!0-9.]*) echo "usage: ${0##*/} up|down|reset|<size>" >&2; exit 2 ;;
+  *)       target=$1 ;;
+esac
+
+target=$(awk -v t="$target" -v lo="$MIN_SIZE" -v hi="$MAX_SIZE" \
+  'BEGIN{if(t<lo)t=lo; if(t>hi)t=hi; printf "%g", t}')
+
+mkdir -p "${conf%/*}"
+tmp="$conf.tmp.$$"
+{
+  echo "# Machine-local Alacritty overrides. NOT tracked in git."
+  echo "# Managed by alacritty-font-size; edit freely."
+  echo
+  echo "[font]"
+  echo "size = $target"
+} > "$tmp"
+mv "$tmp" "$conf"
+
+echo "font size: $target"
