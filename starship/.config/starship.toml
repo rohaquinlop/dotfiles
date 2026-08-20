@@ -1,13 +1,6 @@
+command_timeout = 2000
+
 format = """
-[](red)\
-$os\
-$username\
-[](bg:peach fg:red)\
-$directory\
-[](bg:yellow fg:peach)\
-$git_branch\
-$git_status\
-[](fg:yellow bg:green)\
 $c\
 $rust\
 $golang\
@@ -18,13 +11,21 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:green bg:sapphire)\
 $conda\
+$line_break\
+[](red)\
+$os\
+$username\
+[](bg:peach fg:red)\
+$directory\
+[](bg:yellow fg:peach)\
+$git_branch\
+$git_status\
+[](fg:yellow bg:sapphire)\
 [](fg:sapphire bg:lavender)\
 $time\
 [ ](fg:lavender)\
 $cmd_duration\
-$line_break\
 $character"""
 
 palette = 'catppuccin_mocha'
@@ -86,57 +87,57 @@ format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
 [nodejs]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [bun]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [c]
 symbol = " "
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [rust]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [golang]
 disabled = true
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [php]
 disabled = true
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [java]
 disabled = true
 symbol = " "
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [kotlin]
 disabled = true
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [haskell]
 disabled = true
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [python]
 symbol = ""
 style = "bg:green"
-format = '[[ $symbol( $version)(\(#$virtualenv\)) ](fg:crust bg:green)]($style)'
+format = '[](fg:green)[[ $symbol( $version)(\(#$virtualenv\)) ](fg:crust bg:green)]($style)[](fg:green)'
 
 [docker_context]
 symbol = ""
@@ -147,7 +148,7 @@ format = '[[ $symbol( $context) ](fg:crust bg:sapphire)]($style)'
 disabled = true
 symbol = "  "
 style = "fg:crust bg:sapphire"
-format = '[$symbol$environment ]($style)'
+format = '[](fg:sapphire)[$symbol$environment ]($style)[](fg:sapphire)'
 ignore_base = false
 
 [time]
@@ -157,7 +158,7 @@ style = "bg:lavender"
 format = '[[  $time ](fg:crust bg:lavender)]($style)'
 
 [line_break]
-disabled = true
+disabled = false
 
 [character]
 disabled = false
