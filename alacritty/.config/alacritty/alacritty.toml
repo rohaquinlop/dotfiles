@@ -1,4 +1,8 @@
-general.import = [ "~/.local/state/omarchy/current/theme/alacritty.toml" ]
+general.import = [
+  "~/.local/state/omarchy/current/theme/alacritty.toml",
+  # Machine-local overrides (font size). Not tracked in git; may not exist.
+  "~/.config/alacritty/local.toml",
+]
 
 [env]
 TERM = "xterm-256color"
@@ -10,7 +14,6 @@ osc52 = "CopyPaste"
 normal = { family = "JetBrainsMono Nerd Font" }
 bold = { family = "JetBrainsMono Nerd Font" }
 italic = { family = "JetBrainsMono Nerd Font" }
-size = 11
 
 [cursor]
 style = { shape = "Block", blinking = "Never" }
@@ -28,5 +31,14 @@ bindings = [
 # Send Shift+Return as CSI-u so TUIs can distinguish it from Return without treating it as Alt+Return.
 { key = "Return", mods = "Shift", chars = "\u001B[13;2u" },
 # Legacy encoding sends Alt+Shift+Return the same as Alt+Return; send CSI-u so tmux can match M-S-Enter.
-{ key = "Return", mods = "Alt|Shift", chars = "\u001B[13;4u" }
+{ key = "Return", mods = "Alt|Shift", chars = "\u001B[13;4u" },
+# Persistent font size. Writes to ~/.config/alacritty/local.toml, which
+# Alacritty watches, so the new size survives a restart. The built-in
+# Increase/DecreaseFontSize actions are transient and are lost on exit.
+{ key = "=", mods = "Control|Shift", command = { program = "/bin/sh", args = ["-c", "\"$HOME/.local/bin/alacritty-font-size\" up"] } },
+{ key = "-", mods = "Control|Shift", command = { program = "/bin/sh", args = ["-c", "\"$HOME/.local/bin/alacritty-font-size\" down"] } },
+{ key = "0", mods = "Control|Shift", command = { program = "/bin/sh", args = ["-c", "\"$HOME/.local/bin/alacritty-font-size\" reset"] } },
+{ key = "=", mods = "Command|Shift", command = { program = "/bin/sh", args = ["-c", "\"$HOME/.local/bin/alacritty-font-size\" up"] } },
+{ key = "-", mods = "Command|Shift", command = { program = "/bin/sh", args = ["-c", "\"$HOME/.local/bin/alacritty-font-size\" down"] } },
+{ key = "0", mods = "Command|Shift", command = { program = "/bin/sh", args = ["-c", "\"$HOME/.local/bin/alacritty-font-size\" reset"] } }
 ]
