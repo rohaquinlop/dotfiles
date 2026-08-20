@@ -10,6 +10,7 @@ local-icons/icons/hicolor/index.theme
 
 # Generated files
 lazygit/lazygit/config.yml
+nvim/.config/nvim/lazy-lock.json
 
 # Editor temp files
 *~
