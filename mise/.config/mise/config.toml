@@ -3,6 +3,8 @@ claude = "latest"
 codex = "latest"
 go = "latest"
 node = "26.2.0"
+opencode = "latest"
+pi = "latest"
 
 [settings]
 npm.shell_out = true
