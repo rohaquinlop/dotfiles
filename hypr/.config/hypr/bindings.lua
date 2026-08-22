@@ -11,3 +11,7 @@ o.bind("SUPER + SHIFT + W", "Typora", { launch = "typora --enable-wayland-ime" }
 -- SUPER+SHIFT+S: area screenshot instead of Google Maps.
 hl.unbind("SUPER + SHIFT + S")
 o.bind("SUPER + SHIFT + S", "Area screenshot", "omarchy-capture-screenshot region slurp")
+
+-- SUPER+/ and SUPER+ALT+/ : freed for herdr (were: monitor scaling up/down).
+hl.unbind("SUPER + SLASH")
+hl.unbind("SUPER + ALT + SLASH")
