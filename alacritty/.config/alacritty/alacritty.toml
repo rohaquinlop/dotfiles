@@ -9,6 +9,9 @@ TERM = "xterm-256color"
 
 [terminal]
 osc52 = "CopyPaste"
+# Plain launches attach to herdr; explicit commands (`alacritty -e ...`, e.g. the
+# SUPER+SHIFT+CTRL+A agent keybinding) override this and are unaffected.
+shell = { program = "alacritty-herdr" }
 
 [font]
 normal = { family = "JetBrainsMono Nerd Font" }

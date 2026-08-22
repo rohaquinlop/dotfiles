@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Alacritty default shell: attach to the persistent herdr session.
+# Falls back to the login shell if herdr exits (detach, crash, or quit).
+herdr
+exec "${SHELL:-/bin/bash}"
