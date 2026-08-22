@@ -26,6 +26,7 @@ export PATH="$HOME/.cache/.bun/bin:$PATH"
 
 # Aliases
 alias oc='opencode'
+alias ll='ls -l --color=auto'
 
 # Git shortcuts (extending Omarchy's g, gcm, gcam)
 alias gaa='git add --all'
