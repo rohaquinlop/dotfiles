@@ -1,5 +1,7 @@
 general.import = [
-  "~/.local/state/omarchy/current/theme/alacritty.toml",
+  # Tracked in git so the same theme loads on macOS. On Linux, omarchy's
+  # theme-set hook keeps this file in sync with the active theme.
+  "~/.config/alacritty/theme.toml",
   # Machine-local overrides (font size). Not tracked in git; may not exist.
   "~/.config/alacritty/local.toml",
 ]

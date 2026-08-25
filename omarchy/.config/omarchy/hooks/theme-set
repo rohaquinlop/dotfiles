@@ -4,3 +4,10 @@
 # >>> omazed hook - do not edit >>>
 omazed set "$1"
 # <<< omazed hook - do not edit <<<
+
+# Sync the fresh theme into the stowed Alacritty theme file. The file is a
+# symlink into the dotfiles repo, so a theme change shows up as a git diff;
+# commit and push it to sync the same theme to macOS.
+if [ -f "$HOME/.local/state/omarchy/current/theme/alacritty.toml" ]; then
+  cp "$HOME/.local/state/omarchy/current/theme/alacritty.toml" "$HOME/.config/alacritty/theme.toml"
+fi
