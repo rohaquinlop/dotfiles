@@ -14,6 +14,9 @@ source ~/.config/zsh/plugins/git/git.plugin.zsh 2>/dev/null
 unalias ga gd 2>/dev/null
 
 # Load shared shell configuration (aliases, functions, environment, tool init)
+# Drop the try() wrapper before re-running `try init` — the function shadows
+# the binary, so re-sourcing would open the picker instead of re-initializing.
+unset -f try 2>/dev/null
 [[ -f /usr/share/omarchy-zsh/shell/all ]] && source /usr/share/omarchy-zsh/shell/all
 
 # Add your own customizations below
