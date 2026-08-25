@@ -5,10 +5,10 @@ name = "catppuccin"
 auto_switch = false
 
 [ui.toast]
-delivery = "terminal"
+delivery = "system"
 
 [ui.sound]
-enabled = false
+enabled = true
 
 [ui]
 show_agent_labels_on_pane_borders = true
