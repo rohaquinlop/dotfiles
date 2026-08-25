@@ -16,3 +16,20 @@ local function set_cursor_hl()
 end
 set_cursor_hl()
 vim.api.nvim_create_autocmd("ColorScheme", { callback = set_cursor_hl })
+
+-- Opening a directory (e.g. `nvim .`) skips the dashboard and hands the
+-- main window an empty, unnamed, listed buffer instead (neo-tree takes the
+-- sidebar). Wipe leftover empty buffers once a real file buffer is entered.
+vim.api.nvim_create_autocmd("BufEnter", {
+  callback = function(args)
+    local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+    if #bufs <= 1 then
+      return
+    end
+    for _, buf in ipairs(bufs) do
+      if buf.bufnr ~= args.buf and buf.name == "" and buf.changed == 0 then
+        pcall(vim.api.nvim_buf_delete, buf.bufnr, {})
+      end
+    end
+  end,
+})
