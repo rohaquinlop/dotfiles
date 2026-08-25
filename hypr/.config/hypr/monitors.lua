@@ -10,4 +10,4 @@ hl.monitor({ output = "eDP-1", mode = "1920x1200@60", position = "0x0", scale = 
 -- HDMI-A-1 is a 27" 1440p panel = 109 DPI. Scale 1.6 collapsed it to a
 -- 1600x900 logical desktop, which is why it looked worse than the laptop.
 -- Scale 1 gives back the full 2560x1440; comfort comes from font sizes.
-hl.monitor({ output = "HDMI-A-1", mode = "2560x1440@59.95", position = "1920x0", scale = 1 })
+hl.monitor({ output = "HDMI-A-1", mode = "2560x1440@59.95", position = "1920x0", scale = 1.25 })
