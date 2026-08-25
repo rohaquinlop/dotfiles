@@ -27,6 +27,8 @@ export PATH="$HOME/.cache/.bun/bin:$PATH"
 # Aliases
 alias oc='opencode'
 alias ll='ls -l --color=auto'
+# New herdr workspace in $HOME (TUI Ctrl+A c keeps following pane cwd)
+alias hws='herdr workspace create --cwd ~ --focus >/dev/null'
 
 # Git shortcuts (extending Omarchy's g, gcm, gcam)
 alias gaa='git add --all'
