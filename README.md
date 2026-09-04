@@ -17,7 +17,7 @@ The install script will:
 - Install Hyprland config via manual symlinks (Hyprland watchdog overwrites directory symlinks)
 - Enable systemd user services
 - Install system-level files (udev rules, scripts) with sudo
-- Reload Hyprland, Waybar, and Walker
+- Reload Hyprland
 
 ## How It Works
 
@@ -26,7 +26,7 @@ Configs live in `~/.dotfiles/` as stow packages. Each package mirrors the target
 ```
 ~/.dotfiles/hypr/.config/hypr/bindings.conf  →  ~/.config/hypr/bindings.conf
 ~/.dotfiles/shell/.bashrc                     →  ~/.bashrc
-~/.dotfiles/kitty/.config/kitty/kitty.conf    →  ~/.config/kitty/kitty.conf
+~/.dotfiles/mise/.config/mise/config.toml     →  ~/.config/mise/config.toml
 ```
 
 When you edit `~/.config/hypr/bindings.conf`, you're actually editing the file in the repo. Changes are tracked automatically.
@@ -38,21 +38,13 @@ When you edit `~/.config/hypr/bindings.conf`, you're actually editing the file i
 | `shell` | `~/` | Shell configs (.bashrc, .zshrc, .profile, .bash_profile) |
 | `hypr` | `~/.config/hypr/` | Hyprland window manager (manual symlinks) |
 | `alacritty` | `~/.config/alacritty/` | Alacritty terminal |
-| `foot` | `~/.config/foot/` | Foot terminal |
-| `kitty` | `~/.config/kitty/` | Kitty terminal |
 | `nvim` | `~/.config/nvim/` | Neovim (LazyVim) |
 | `starship` | `~/.config/starship.toml` | Starship prompt |
 | `btop` | `~/.config/btop/` | System monitor |
-| `tmux` | `~/.config/tmux/` | Terminal multiplexer |
 | `git` | `~/.config/git/` | Git configuration |
 | `gh` | `~/.config/gh/` | GitHub CLI |
 | `lazygit` | `~/.config/lazygit/` | Git TUI |
 | `mise` | `~/.config/mise/` | Runtime version manager |
-| `mako` | `~/.config/mako/` | Notification daemon |
-| `swayosd` | `~/.config/swayosd/` | On-screen display |
-| `walker` | `~/.config/walker/` | Application launcher |
-| `waybar` | `~/.config/waybar/` | Status bar |
-| `elephant` | `~/.config/elephant/` | Walker plugin menus |
 | `omarchy` | `~/.config/omarchy/` | Omarchy themes, branding, hooks |
 | `opencode` | `~/.config/opencode/` | Opencode AI assistant |
 | `herdr` | `~/.config/herdr/` | Herdr TUI settings (pi coding agent) |
@@ -119,8 +111,8 @@ git add -A && git commit -m "Add Super+E for file manager" && git push
 # Updated theme
 git add -A && git commit -m "Switch to catppuccin mocha" && git push
 
-# New tmux config
-git add -A && git commit -m "Add tmux split shortcuts" && git push
+# New starship config
+git add -A && git commit -m "Add starship prompt tweaks" && git push
 ```
 
 ### Quick Alias (Optional)
@@ -160,13 +152,13 @@ You can stow/unstow individual packages:
 cd ~/.dotfiles
 
 # Stow a single package
-stow --no-folding -t ~ kitty
+stow --no-folding -t ~ btop
 
 # Unstow a single package
-stow -D -t ~ kitty
+stow -D -t ~ btop
 
 # Dry-run (see what would happen)
-stow --no-folding -n -v -t ~ kitty
+stow --no-folding -n -v -t ~ btop
 ```
 
 ## What's Excluded

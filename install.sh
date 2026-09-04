@@ -17,10 +17,10 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Packages that work with normal stow (--no-folding)
 STOW_PACKAGES=(
-  shell alacritty foot kitty
-  nvim starship btop tmux git gh lazygit mise
+  shell alacritty
+  nvim starship btop git gh lazygit mise
   herdr
-  mako swayosd walker waybar elephant omarchy opencode
+  omarchy opencode
   fcitx5 config-misc systemd-user
   desktop-entries local-icons local-state
 )
@@ -74,8 +74,6 @@ stow_packages() {
 
 enable_systemd_services() {
   log_info "Enabling systemd user services..."
-  systemctl --user enable elephant.service 2>/dev/null && log_ok "elephant.service"
-  systemctl --user enable swayosd-server.service 2>/dev/null && log_ok "swayosd-server.service"
   systemctl --user enable omarchy-recover-internal-monitor.service 2>/dev/null && log_ok "omarchy-recover-internal-monitor.service"
 }
 
@@ -124,8 +122,6 @@ reload_services() {
   log_info "Reloading services..."
   hyprctl reload 2>/dev/null && log_ok "Hyprland reloaded" || true
   systemctl --user daemon-reload 2>/dev/null && log_ok "systemd user daemon reloaded" || true
-  command -v omarchy &>/dev/null && omarchy restart waybar 2>/dev/null && log_ok "Waybar restarted" || true
-  command -v omarchy &>/dev/null && omarchy restart walker 2>/dev/null && log_ok "Walker restarted" || true
 }
 
 main() {
