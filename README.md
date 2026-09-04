@@ -15,7 +15,6 @@ cd ~/.dotfiles
 The install script will:
 - Stow all user config packages using `stow --no-folding`
 - Install Hyprland config via manual symlinks (Hyprland watchdog overwrites directory symlinks)
-- Enable systemd user services
 - Install system-level files (udev rules, scripts) with sudo
 - Reload Hyprland
 
@@ -50,7 +49,6 @@ When you edit `~/.config/hypr/bindings.conf`, you're actually editing the file i
 | `herdr` | `~/.config/herdr/` | Herdr TUI settings (pi coding agent) |
 | `fcitx5` | `~/.config/fcitx5/` | Input method + environment.d |
 | `config-misc` | `~/.config/` | Loose configs (chromium-flags, mimeapps, autostart, fontconfig, gtk, imv, obsidian) |
-| `systemd-user` | `~/.config/systemd/user/` | Systemd user services |
 | `desktop-entries` | `~/.local/share/applications/` | Desktop entries and app icons |
 | `local-icons` | `~/.local/share/icons/` | Hicolor icon theme |
 | `local-state` | `~/.local/state/` | Omarchy toggle state |

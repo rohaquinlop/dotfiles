@@ -21,7 +21,7 @@ STOW_PACKAGES=(
   nvim starship btop git gh lazygit mise
   herdr
   omarchy opencode
-  fcitx5 config-misc systemd-user
+  fcitx5 config-misc
   desktop-entries local-icons local-state
 )
 
@@ -70,11 +70,6 @@ stow_packages() {
     log_error "$failed package(s) failed"
     return 1
   fi
-}
-
-enable_systemd_services() {
-  log_info "Enabling systemd user services..."
-  systemctl --user enable omarchy-recover-internal-monitor.service 2>/dev/null && log_ok "omarchy-recover-internal-monitor.service"
 }
 
 install_system_files() {
@@ -133,8 +128,6 @@ main() {
 
   install_hypr
   stow_packages
-  echo ""
-  enable_systemd_services
   echo ""
   install_system_files
   echo ""
