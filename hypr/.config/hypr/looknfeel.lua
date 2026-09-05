@@ -33,6 +33,8 @@ hl.config({
 -- Overrides Omarchy's default 0.985 opacity for the default-opacity tag.
 o.window({ tag = "default-opacity" }, { opacity = "1 1" })
 
--- Bump the cursor from Omarchy's default 24, small on a 162 DPI panel.
-hl.env("XCURSOR_SIZE", "28")
-hl.env("HYPRCURSOR_SIZE", "28")
+-- Pin the cursor theme (Omarchy ships no cursor theme default of its own).
+hl.env("XCURSOR_THEME", "Bibata-Modern-Ice")
+hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Ice")
+hl.env("XCURSOR_SIZE", "24")
+hl.env("HYPRCURSOR_SIZE", "24")
