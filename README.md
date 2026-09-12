@@ -117,11 +117,15 @@ brew install --cask font-noto-sans-mono font-symbols-only-nerd-font
 
 - **UI**: CachyOS defaults — Adwaita Sans in GTK apps, Noto Sans for generic
   `sans-serif` requests. There are no user fontconfig family overrides.
-- **Terminal**: Noto Sans Mono on both machines. Nerd Font glyphs (starship,
-  nvim devicons, btop) fall back to **Symbols Nerd Font Mono** through
-  `config-misc/.config/fontconfig/conf.d/50-nerd-font-fallback.conf`.
-- **Linux**: the symbols font comes from `ttf-nerd-fonts-symbols-mono`;
-  Noto Sans Mono ships with CachyOS (`noto-fonts`, pulled in by
+- **Terminal**: Noto Sans Mono on both machines. On Linux, fontconfig
+  redirects the family to the patched **NotoSansM Nerd Font Mono**
+  (`ttf-noto-nerd`) via
+  `config-misc/.config/fontconfig/conf.d/50-noto-nerd.conf`, so text keeps
+  Noto Sans Mono letterforms while starship/nvim/btop glyphs come from the
+  same font. Plain Noto Sans Mono has no Nerd Font glyphs, and alacritty's
+  per-glyph fallback mis-renders the powerline caps.
+- **Linux packages**: `ttf-noto-nerd` for the patched font; Noto Sans Mono
+  itself ships with CachyOS (`noto-fonts`, pulled in by
   `cachyos-niri-noctalia`).
 
 ## System-Level Files

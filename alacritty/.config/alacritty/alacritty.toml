@@ -12,10 +12,11 @@ TERM = "xterm-256color"
 osc52 = "CopyPaste"
 
 [font]
-# Noto Sans Mono ships with CachyOS (noto-fonts) and can be installed on macOS
-# with `brew install --cask font-noto-sans-mono`. Nerd Font glyphs come from
-# Symbols Nerd Font Mono (ttf-nerd-fonts-symbols-mono /
-# font-symbols-only-nerd-font) through the fontconfig fallback rule.
+# Terminal font: Noto Sans Mono. On Linux, fontconfig redirects this family
+# to the patched NotoSansM Nerd Font Mono (ttf-noto-nerd) so text keeps the
+# Noto Sans Mono letterforms while the Nerd Font glyphs come from the same
+# font (see config-misc/.../fontconfig/conf.d/50-noto-nerd.conf). On macOS
+# install `font-noto-sans-mono` and the symbols-only fallback.
 normal = { family = "Noto Sans Mono" }
 bold = { family = "Noto Sans Mono" }
 italic = { family = "Noto Sans Mono" }

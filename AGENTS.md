@@ -36,10 +36,12 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
   `stow` does not clean those up. Check with `find ~/.config -xtype l` and remove
   the ones pointing into this repo. (Chromium/Firefox `SingletonLock`-style
   broken links are normal runtime files.)
-- **Terminal font is Noto Sans Mono** on both machines; Nerd Font glyphs come
-  from `ttf-nerd-fonts-symbols-mono` (Symbols Nerd Font Mono) via
-  `config-misc/.config/fontconfig/conf.d/50-nerd-font-fallback.conf`. Do not
-  switch to a patched monospace font.
+- **Terminal font is Noto Sans Mono** on both machines. On Linux, fontconfig
+  redirects the family to the patched `NotoSansM Nerd Font Mono`
+  (`ttf-noto-nerd`) via
+  `config-misc/.config/fontconfig/conf.d/50-noto-nerd.conf`. Plain Noto Sans
+  Mono plus alacritty's per-glyph fallback mis-renders the powerline caps, so
+  do not remove that rule or the package.
 - The `system/local/bin/mkinitcpio` wrapper is a safety net for manual
   `mkinitcpio -P` runs; it calls the CachyOS-native `limine-mkinitcpio`.
 - The CachyOS niri defaults live in `~/.config/niri/` and are tracked here after
