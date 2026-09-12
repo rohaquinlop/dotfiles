@@ -12,17 +12,36 @@ niri/.config/niri/cfg/keybinds.kdl  →  ~/.config/niri/cfg/keybinds.kdl
 shell/.zshrc                        →  ~/.zshrc
 ```
 
-Stowed packages: `shell alacritty nvim starship btop git gh herdr niri config-misc`.
+Stowed packages: `shell alacritty nvim starship btop git gh herdr niri config-misc noctalia`.
+
+Desktop palette: **Akane**, from the Omarchy theme
+`github.com/Grenish/omarchy-akane-theme` — colours and wallpapers only, no
+Omarchy tooling. It lives in three places that must be kept in sync: the Noctalia
+palette JSON (`noctalia/.config/noctalia/palettes/akane.json`), the alacritty
+theme (`alacritty/.config/alacritty/akane.toml`), and the starship + Neovim
+catppuccin overrides. See the README table for the full mapping.
 
 Non-stowed files (require `sudo cp`, handled by `install.sh`):
 - `system/udev/rules.d/` → `/etc/udev/rules.d/`
 - `system/keyd/` → `/etc/keyd/`
 - `system/local/bin/` → `/usr/local/bin/`
+- `system/sddm/themes/cachyos/` → `/usr/share/sddm/themes/cachyos/`
+- `system/sddm/sddm.conf.d/` → `/etc/sddm.conf.d/`
 
 ## Critical Quirks
 
+- **Noctalia's `settings.toml` overrides `~/.config/noctalia/*.toml`.** GUI
+  changes — including the lock screen widget editor — are written to
+  `~/.local/state/noctalia/settings.toml` and win over the stowed config. Delete
+  the matching block there, then `noctalia msg config-reload`. Use
+  `noctalia config validate` and `noctalia config export` to check.
 - **Always use `stow --no-folding`**. Without it stow creates directory symlinks
   instead of individual file symlinks.
+- **The SDDM theme's sizes scale with `Screen.height / 1200`, not with a fixed
+  pixel size**, so it stays put when SDDM applies its own HiDPI scale factor.
+  Check edits with `sddm-greeter-qt6 --test-mode --theme <theme dir>` — that
+  renders any copy in a window, so point it at the repo path. The installed
+  greeter only ever reads `/usr/share/sddm/themes/`.
 - **niri auto-reloads its config** when files change. Validate edits with
   `niri validate -c niri/.config/niri/config.kdl` (includes are resolved
   relative to the config file).
@@ -68,6 +87,9 @@ stow --no-folding -n -v -t ~ <package-name>
 
 # Validate niri config
 niri validate -c niri/.config/niri/config.kdl
+
+# Preview the SDDM login theme without rebooting
+sddm-greeter-qt6 --test-mode --theme system/sddm/themes/cachyos
 ```
 
 ## Adding a New Package

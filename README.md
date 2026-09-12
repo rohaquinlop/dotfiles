@@ -36,6 +36,7 @@ niri reloads its configuration automatically after the files change.
 | `gh` | `~/.config/gh/` | GitHub CLI |
 | `herdr` | `~/.config/herdr/` | Herdr terminal workspace manager |
 | `config-misc` | `~/.config/` | fontconfig, GTK bookmarks, mimeapps, chromium flags, imv, obsidian |
+| `noctalia` | `~/.config/noctalia/` | Lock screen: flat dark background with the CachyOS mark, compact login box |
 
 `lazygit` is installed but intentionally **not** stowed: its config can contain
 credentials. Everything else is symlinked into the repo, so editing a config in
@@ -128,6 +129,116 @@ brew install --cask font-noto-sans-mono font-symbols-only-nerd-font
   itself ships with CachyOS (`noto-fonts`, pulled in by
   `cachyos-niri-noctalia`).
 
+## Theme: Akane
+
+The desktop palette is **Akane** (茜) from
+[Grenish/omarchy-akane-theme](https://github.com/Grenish/omarchy-akane-theme) —
+dusk navy, vermillion torii, sunset gold. That repo is an Omarchy theme, so only
+its **colours and wallpapers** are used here; nothing from the Omarchy tooling
+is installed.
+
+| Surface | How it carries the palette |
+|---------|----------------------------|
+| Noctalia (bar, panels, lock screen) | `noctalia/.config/noctalia/palettes/akane.json`, selected with `noctalia msg color-scheme-set custom akane` (writes `settings.toml`, which wins) |
+| Alacritty | `alacritty/.config/alacritty/akane.toml`, imported by `alacritty.toml`. The previous Catppuccin palette stays in `theme.toml` |
+| btop | `btop/.config/btop/themes/akane.theme`, `color_theme = "akane"` |
+| starship | `[palettes.akane]` in `starship.toml`; the Catppuccin palettes stay below it |
+| niri | focus ring gradient `#e15a48 → #f0b45a` in `cfg/layout.kdl` |
+| Neovim | catppuccin `color_overrides` in `lua/plugins/theme.lua`, so LazyVim keeps its structure |
+| Login + lock screen | background `#12101c`, Akane red for failures; the padlock and box keep the CachyOS wordmark's cyan |
+| Wallpapers | `~/Pictures/Wallpapers/akane/` (8 images, not tracked in git) |
+
+Names differ per app, so the palette is mapped: `mauve`/`mPrimary`/accent →
+`#e15a48`, `peach`/`mSecondary` → `#f0b45a`, `teal`/`mTertiary` → `#4a9bb0`,
+`base`/`mSurface` → `#12101c`, `text`/`mOnSurface` → `#f0c4a8`. Regenerate the
+palette JSON and the two app palettes from one place if you change colours —
+they are three copies of the same list today.
+
+Switching back to Catppuccin: set `palette = 'catppuccin_mocha'` in
+`starship.toml`, point `general.import` in `alacritty.toml` at `theme.toml`, set
+btop's `color_theme = "catppuccin"`, drop the `focus-ring` block in
+`cfg/layout.kdl`, and run
+`noctalia msg color-scheme-set community Oxocarbon`.
+
+## Login Screen (SDDM)
+
+The greeter is a minimal SDDM theme in `system/sddm/`, copied to
+`/usr/share/sddm/themes/cachyos` by `install.sh`: the distro's own boot
+wordmark, a padlock and one password box. No user list, no session picker, no
+clock, no username label — the layout is Omarchy's (their theme, MIT, is the
+base for the QML), and the artwork is CachyOS's own, so the login screen
+matches what boots.
+
+| File | Installed to |
+|------|--------------|
+| `system/sddm/themes/cachyos/` | `/usr/share/sddm/themes/cachyos/` |
+| `system/sddm/sddm.conf.d/10-theme.conf` | `/etc/sddm.conf.d/10-theme.conf` (selects the theme + cursor) |
+
+Preview it without logging out (the repo copy, no sudo needed):
+
+```bash
+sddm-greeter-qt6 --test-mode --theme system/sddm/themes/cachyos
+```
+
+**Wordmark.** There is no vector CachyOS wordmark in the distro — only the
+square emblem (`/usr/share/icons/cachyos.svg`, what GDM uses) and
+`/usr/share/plymouth/themes/cachyos/watermark.png` (emblem + "CACHYOS!" +
+"BLAZINGLY FAST", from `cachyos-plymouth-theme`), which is what the boot splash
+shows. That watermark is a 243x66 bitmap: any enlargement shows its pixel
+blocks, so `system/sddm/make-wordmark.sh` copies it at 1:1 (`-trim` only) and
+`Main.qml` draws it at exactly 243x66 with `smooth: false` — the same size the
+boot splash uses. Everything else in the theme is drawn by QML, so it stays
+sharp at any size (padlock 35x40, password box 240x40, 6px bullets).
+
+**Colours.** Background is Catppuccin Mocha (`#1e1e2e`, same as alacritty); the
+padlock and the password box use CachyOS cyan (`#02c9e1`) to match the wordmark.
+A failed login turns the padlock and the box red (`#f38ba8`) — that is the only
+feedback, as in Omarchy's theme.
+
+`Main.qml` sizes everything by `Screen.height / 1200`, so the greeter renders at
+the same physical size whatever scale factor SDDM applies. On this 1920x1200
+panel the mark is 288x135 at 1:1 device pixels: 243x66 wordmark, 28px gap,
+35x40 padlock and a 240x40 password box.
+
+**Centring.** The wordmark and the password box share the panel's centre line.
+The padlock sits in a 35px gutter to the left of the box and an empty spacer of
+the same width balances the row on the right, so the box is not pushed off
+centre by its own padlock. Measured on a 1920x1200 render: box 840..1080
+(centre 960), wordmark 839..1082 (centre 960.5), mark vertically 532..667
+(centre 599.5).
+
+To go back to the stock greeter: `sudo rm /etc/sddm.conf.d/10-theme.conf`.
+
+## Lock Screen (Noctalia)
+
+Closing the lid suspends the machine, and waking shows the **Noctalia** lock
+screen, not SDDM. Noctalia already locks before sleep (`lock_before_suspend`),
+so no systemd sleep hook is needed — `systemd-inhibit --list` shows
+`noctalia … sleep "Lock before sleep"`.
+
+The `noctalia` package makes that lock screen match the login screen:
+
+- `config.toml` — `[lockscreen]` disables desktop capture, blur and tint and
+  points `wallpaper` at the asset below. The login box widget runs
+  `layout = "compact"` with no card background and no media/weather/session
+  extras.
+- `assets/lock-background.png` — flat Catppuccin base (`#1e1e2e`) with the
+  CachyOS mark centred at 1:1. It is baked into the image rather than added as a
+  widget, so it cannot fail to draw. `system/sddm/make-wordmark.sh` regenerates
+  it together with the greeter copy, so all three screens (boot splash, login
+  screen, lock screen) carry the same artwork.
+
+**Noctalia's `settings.toml` wins over this file.** Anything changed in the GUI —
+including the lock screen widget editor
+(`noctalia msg lockscreen-widgets-edit`) — is written to
+`~/.local/state/noctalia/settings.toml` and overrides `config.toml`. If a value
+here stops taking effect, delete the matching block from that file and run
+`noctalia msg config-reload`. `noctalia config validate` checks the TOML and
+`noctalia config export` prints the effective configuration.
+
+The lock screen input field keeps the Noctalia palette (community "Oxocarbon");
+only the background, the mark and the panel shape come from this package.
+
 ## System-Level Files
 
 Copied with `sudo` by `install.sh` (not symlinked):
@@ -135,6 +246,7 @@ Copied with `sudo` by `install.sh` (not symlinked):
 - `/etc/udev/rules.d/59-vial.rules`, `/etc/udev/rules.d/99-vial.rules` — Vial keyboard access
 - `/etc/keyd/default.conf` — Caps Lock → Backspace
 - `/usr/local/bin/mkinitcpio` — warns when Limine boot entries need `limine-mkinitcpio`
+- `/usr/share/sddm/themes/cachyos/` + `/etc/sddm.conf.d/10-theme.conf` — login screen (see above)
 
 ## Notes
 
