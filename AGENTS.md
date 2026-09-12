@@ -32,8 +32,12 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
   `Ctrl+Insert` / `Shift+Insert`, other apps `Ctrl+C` / `Ctrl+V`.
 - **lazygit is intentionally not stowed** — its config can contain credentials.
   Do not add it back to the repo.
-- The `system/local/bin/mkinitcpio` wrapper is specific to **Limine** (the
-  CachyOS bootloader) and warns about stale boot entries.
+- **Deleting a file from a stowed package leaves a dangling symlink in `~`.**
+  `stow` does not clean those up. Check with `find ~/.config -xtype l` and remove
+  the ones pointing into this repo. (Chromium/Firefox `SingletonLock`-style
+  broken links are normal runtime files.)
+- The `system/local/bin/mkinitcpio` wrapper is a safety net for manual
+  `mkinitcpio -P` runs; it calls the CachyOS-native `limine-mkinitcpio`.
 - The CachyOS niri defaults live in `~/.config/niri/` and are tracked here after
   the first install; editing them directly edits the repo.
 
