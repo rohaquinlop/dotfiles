@@ -21,6 +21,14 @@ normal = { family = "Noto Sans Mono" }
 bold = { family = "Noto Sans Mono" }
 italic = { family = "Noto Sans Mono" }
 
+# Alacritty's cell is taller than the font's powerline glyphs, so the round
+# caps (U+E0B4/E0B6, which alacritty does not draw itself like the E0B0-E0B3
+# triangles) leave a 1px notch at the top and bottom. Removing the extra cell
+# padding and nudging the glyphs down makes them line up exactly. Tuned for
+# the default font size; a much larger size may need re-tuning.
+offset = { y = -2 }
+glyph_offset = { y = -1 }
+
 [cursor]
 style = { shape = "Block", blinking = "Never" }
 

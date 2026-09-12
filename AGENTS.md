@@ -41,7 +41,11 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
   (`ttf-noto-nerd`) via
   `config-misc/.config/fontconfig/conf.d/50-noto-nerd.conf`. Plain Noto Sans
   Mono plus alacritty's per-glyph fallback mis-renders the powerline caps, so
-  do not remove that rule or the package.
+  do not remove that rule or the package. Alacritty only draws the powerline
+  triangles (U+E0B0-E0B3) itself; the round caps (U+E0B4/E0B6) come from the
+  font and are one pixel shorter than alacritty's cell, hence
+  `font.offset.y = -2` + `font.glyph_offset.y = -1` in `alacritty.toml`
+  (tuned for the default font size).
 - The `system/local/bin/mkinitcpio` wrapper is a safety net for manual
   `mkinitcpio -P` runs; it calls the CachyOS-native `limine-mkinitcpio`.
 - The CachyOS niri defaults live in `~/.config/niri/` and are tracked here after
