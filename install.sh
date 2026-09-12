@@ -68,6 +68,25 @@ stow_packages() {
 install_system_files() {
   log_info "Installing system-level files (requires sudo)..."
 
+  if [ -d system/sddm/themes ] && command -v sddm >/dev/null 2>&1; then
+    sudo mkdir -p /usr/share/sddm/themes /etc/sddm.conf.d
+    # Replace the theme wholesale so deleted files do not linger.
+    sudo rm -rf /usr/share/sddm/themes/cachyos
+    sudo cp -r system/sddm/themes/cachyos /usr/share/sddm/themes/cachyos
+    sudo chown -R root:root /usr/share/sddm/themes/cachyos
+    sudo chmod -R a+rX /usr/share/sddm/themes/cachyos
+    log_ok "sddm theme: cachyos"
+
+    for conf in system/sddm/sddm.conf.d/*.conf; do
+      [ -f "$conf" ] || continue
+      sudo cp "$conf" "/etc/sddm.conf.d/$(basename "$conf")"
+      log_ok "sddm config: $(basename "$conf")"
+    done
+    log_info "Login screen preview: sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/cachyos"
+  else
+    log_warn "sddm is not installed — skipping login screen theme"
+  fi
+
   for rule in system/udev/rules.d/*.rules; do
     [ -f "$rule" ] || continue
     sudo cp "$rule" "/etc/udev/rules.d/$(basename "$rule")"

@@ -1,0 +1,7 @@
+[SddmGreeterTheme]
+Name=CachyOS
+Description=Minimal login screen: CachyOS boot wordmark, a padlock and one password box (layout inspired by Omarchy)
+Author=rohaquinlop (QML based on Omarchy's SDDM theme, artwork (c) CachyOS)
+Type=sddm-theme
+Version=1.0
+QtVersion=6
