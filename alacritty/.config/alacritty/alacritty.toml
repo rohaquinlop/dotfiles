@@ -12,9 +12,13 @@ TERM = "xterm-256color"
 osc52 = "CopyPaste"
 
 [font]
-normal = { family = "JetBrainsMono Nerd Font" }
-bold = { family = "JetBrainsMono Nerd Font" }
-italic = { family = "JetBrainsMono Nerd Font" }
+# Noto Sans Mono ships with CachyOS (noto-fonts) and can be installed on macOS
+# with `brew install --cask font-noto-sans-mono`. Nerd Font glyphs come from
+# Symbols Nerd Font Mono (ttf-nerd-fonts-symbols-mono /
+# font-symbols-only-nerd-font) through the fontconfig fallback rule.
+normal = { family = "Noto Sans Mono" }
+bold = { family = "Noto Sans Mono" }
+italic = { family = "Noto Sans Mono" }
 
 [cursor]
 style = { shape = "Block", blinking = "Never" }

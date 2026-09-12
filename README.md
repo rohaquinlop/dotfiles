@@ -107,6 +107,23 @@ stow --no-folding -t ~ nvim   # re-stow when new plugin files appear
 For Neovim run `:Lazy sync`, then check `:Mason` for `efm-langserver`.
 `nvim --version` must be 0.11+.
 
+On macOS, install the terminal fonts:
+
+```bash
+brew install --cask font-noto-sans-mono font-symbols-only-nerd-font
+```
+
+## Fonts
+
+- **UI**: CachyOS defaults — Adwaita Sans in GTK apps, Noto Sans for generic
+  `sans-serif` requests. There are no user fontconfig family overrides.
+- **Terminal**: Noto Sans Mono on both machines. Nerd Font glyphs (starship,
+  nvim devicons, btop) fall back to **Symbols Nerd Font Mono** through
+  `config-misc/.config/fontconfig/conf.d/50-nerd-font-fallback.conf`.
+- **Linux**: the symbols font comes from `ttf-nerd-fonts-symbols-mono`;
+  Noto Sans Mono ships with CachyOS (`noto-fonts`, pulled in by
+  `cachyos-niri-noctalia`).
+
 ## System-Level Files
 
 Copied with `sudo` by `install.sh` (not symlinked):

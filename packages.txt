@@ -6,6 +6,6 @@ github-cli
 zoxide
 wtype
 keyd
-ttf-jetbrains-mono-nerd
+ttf-nerd-fonts-symbols-mono
 ty
 python-ruff
