@@ -155,7 +155,8 @@ binds {
     Mod+Shift+Minus                      { set-window-height "-10%"; }
     Mod+Shift+Equal                      { set-window-height "+10%"; }
 
-    // ─── Modes ───
+    // ─── Window management ───
+    Mod+W                                hotkey-overlay-title="Close window" { close-window; }
     Mod+T                                { toggle-window-floating; }
     Mod+Shift+V                          { switch-focus-between-floating-and-tiling; }
     Mod+F                                { fullscreen-window; }
