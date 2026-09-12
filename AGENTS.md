@@ -27,9 +27,14 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
 - `system/local/bin/` → `/usr/local/bin/`
 - `system/sddm/themes/cachyos/` → `/usr/share/sddm/themes/cachyos/`
 - `system/sddm/sddm.conf.d/` → `/etc/sddm.conf.d/`
+- `system/systemd/` → `/etc/systemd/system/` (the wallpaper sync path unit)
 
 ## Critical Quirks
 
+- **The login and lock screen backgrounds are generated, not tracked.**
+  `/usr/local/bin/sddm-theme-sync` builds them from the current Noctalia
+  wallpaper; `sddm-theme-sync.path` triggers it on wallpaper changes. Force a
+  rebuild with `sudo sddm-theme-sync` after moving wallpaper files around.
 - **Noctalia's `settings.toml` overrides `~/.config/noctalia/*.toml`.** GUI
   changes — including the lock screen widget editor — are written to
   `~/.local/state/noctalia/settings.toml` and win over the stowed config. Delete

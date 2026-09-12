@@ -145,7 +145,7 @@ is installed.
 | starship | `[palettes.akane]` in `starship.toml`; the Catppuccin palettes stay below it |
 | niri | focus ring gradient `#e15a48 → #f0b45a` in `cfg/layout.kdl` |
 | Neovim | catppuccin `color_overrides` in `lua/plugins/theme.lua`, so LazyVim keeps its structure |
-| Login + lock screen | background `#12101c`, Akane red for failures; the padlock and box keep the CachyOS wordmark's cyan |
+| Login + lock screen | wallpaper background (as in the theme's own lock screen) with the white mark; greeter colours come from the theme's `hyprlock.conf`: outline `#e15a48`, dots `#f0c4a8`, failure `#d6453d` |
 | Wallpapers | `~/Pictures/Wallpapers/akane/` (8 images, not tracked in git) |
 
 Names differ per app, so the palette is mapped: `mauve`/`mPrimary`/accent →
@@ -154,11 +154,41 @@ Names differ per app, so the palette is mapped: `mauve`/`mPrimary`/accent →
 palette JSON and the two app palettes from one place if you change colours —
 they are three copies of the same list today.
 
+The SDDM greeter takes its colours from the theme's `hyprlock.conf` variables
+directly (`$color`, `$outer_color`, `$font_color`), so the login screen and the
+lock screen agree. Its field fill is `$inner_color`, the background colour, so
+the box stays transparent; on a failed login it fills faintly and turns
+`#d6453d`, because the accent is vermillion already.
+
 Switching back to Catppuccin: set `palette = 'catppuccin_mocha'` in
 `starship.toml`, point `general.import` in `alacritty.toml` at `theme.toml`, set
 btop's `color_theme = "catppuccin"`, drop the `focus-ring` block in
 `cfg/layout.kdl`, and run
 `noctalia msg color-scheme-set community Oxocarbon`.
+
+## Keeping Both Screens in Sync
+
+The greeter cannot read your home directory (mode 700), and Noctalia's lock
+screen has no widget for the mark, so both screens use a pre-rendered image.
+One root-owned script builds both from the current Noctalia wallpaper:
+
+```bash
+sudo sddm-theme-sync     # force a rebuild by hand
+```
+
+| Output | Consumer |
+|--------|----------|
+| `/usr/share/sddm/themes/cachyos/background.jpg` | greeter (the mark is drawn over it by QML) |
+| `~/.local/state/noctalia/lock-background.jpg` | lock screen (`wallpaper =` in the Noctalia config), mark baked in |
+
+`/etc/systemd/system/sddm-theme-sync.path` watches Noctalia's `settings.toml`, so
+choosing another wallpaper rebuilds both images automatically. The script keeps a
+stamp and exits early when the outputs are already current.
+
+Neither image is tracked in git: they change with the wallpaper, and tracking
+them would leave the repo dirty after every change. Only the generators
+(`system/sddm/make-wordmark.sh`, `system/local/bin/sddm-theme-sync`) and the
+theme's QML are tracked.
 
 ## Login Screen (SDDM)
 
@@ -180,32 +210,38 @@ Preview it without logging out (the repo copy, no sudo needed):
 sddm-greeter-qt6 --test-mode --theme system/sddm/themes/cachyos
 ```
 
-**Wordmark.** There is no vector CachyOS wordmark in the distro — only the
-square emblem (`/usr/share/icons/cachyos.svg`, what GDM uses) and
-`/usr/share/plymouth/themes/cachyos/watermark.png` (emblem + "CACHYOS!" +
-"BLAZINGLY FAST", from `cachyos-plymouth-theme`), which is what the boot splash
-shows. That watermark is a 243x66 bitmap: any enlargement shows its pixel
-blocks, so `system/sddm/make-wordmark.sh` copies it at 1:1 (`-trim` only) and
-`Main.qml` draws it at exactly 243x66 with `smooth: false` — the same size the
-boot splash uses. Everything else in the theme is drawn by QML, so it stays
-sharp at any size (padlock 35x40, password box 240x40, 6px bullets).
+**Mark.** The distro's own wordmark is a 243x66 bitmap (the Plymouth boot
+display) — too coarse and too teal over a photo. The login mark is built
+instead from two crisp sources by `system/sddm/make-wordmark.sh`:
 
-**Colours.** Background is Catppuccin Mocha (`#1e1e2e`, same as alacritty); the
-padlock and the password box use CachyOS cyan (`#02c9e1`) to match the wordmark.
-A failed login turns the padlock and the box red (`#f38ba8`) — that is the only
-feedback, as in Omarchy's theme.
+- the distro's **vector** emblem, `/usr/share/icons/cachyos.svg`, rasterised and
+  recoloured to white through its alpha channel;
+- `CACHYOS` set in Noto Sans Mono Condensed Black — the heavy cut of the
+  terminal font — in white.
+
+Result: `wordmark.png`, 773x145, white, so it reads over any wallpaper and stays
+sharp at any scale. Change the name with `WD_TEXT=... ./system/sddm/make-wordmark.sh`.
+
+**Background.** Like the Akane theme's own lock screen, both screens sit on the
+wallpaper — see *Keeping Both Screens in Sync* below. `Main.qml` draws the mark
+over `themes/cachyos/background.jpg`, which the sync script writes at install
+time; the file is generated, so it is not tracked in git.
+
+**Colours.** Everything comes from the theme's own `hyprlock.conf` variables:
+`$color` `#12101c` (background), `$outer_color` `#e15a48` (padlock and field
+outline), `$font_color` `#f0c4a8` (the dots), `$inner_color` `#12101c` at 80%
+(the field fill). Failures turn the field and padlock `#d6453d` and fill the
+field faintly, since the accent is vermillion already.
 
 `Main.qml` sizes everything by `Screen.height / 1200`, so the greeter renders at
 the same physical size whatever scale factor SDDM applies. On this 1920x1200
-panel the mark is 288x135 at 1:1 device pixels: 243x66 wordmark, 28px gap,
-35x40 padlock and a 240x40 password box.
+panel: 773x145 mark, 26px gap, 35x40 padlock, 240x40 password box.
 
-**Centring.** The wordmark and the password box share the panel's centre line.
-The padlock sits in a 35px gutter to the left of the box and an empty spacer of
-the same width balances the row on the right, so the box is not pushed off
-centre by its own padlock. Measured on a 1920x1200 render: box 840..1080
-(centre 960), wordmark 839..1082 (centre 960.5), mark vertically 532..667
-(centre 599.5).
+**Centring.** The mark and the password box share the panel's centre line. The
+padlock sits in a 35px gutter to the left of the box and an empty spacer of the
+same width balances the row on the right, so the box is not pushed off centre by
+its own padlock. Measured on a 1920x1200 render: box 840..1080 (centre 960),
+mark centred on 960, whole block centred vertically.
 
 To go back to the stock greeter: `sudo rm /etc/sddm.conf.d/10-theme.conf`.
 
@@ -222,11 +258,10 @@ The `noctalia` package makes that lock screen match the login screen:
   points `wallpaper` at the asset below. The login box widget runs
   `layout = "compact"` with no card background and no media/weather/session
   extras.
-- `assets/lock-background.png` — flat Catppuccin base (`#1e1e2e`) with the
-  CachyOS mark centred at 1:1. It is baked into the image rather than added as a
-  widget, so it cannot fail to draw. `system/sddm/make-wordmark.sh` regenerates
-  it together with the greeter copy, so all three screens (boot splash, login
-  screen, lock screen) carry the same artwork.
+- `wallpaper` points at `~/.local/state/noctalia/lock-background.jpg` — the
+  current wallpaper darkened 55%, with the white mark centred. It is baked into
+  the image rather than added as a widget, so it cannot fail to draw, and
+  `sddm-theme-sync` rebuilds it whenever the wallpaper changes.
 
 **Noctalia's `settings.toml` wins over this file.** Anything changed in the GUI —
 including the lock screen widget editor
@@ -247,6 +282,7 @@ Copied with `sudo` by `install.sh` (not symlinked):
 - `/etc/keyd/default.conf` — Caps Lock → Backspace
 - `/usr/local/bin/mkinitcpio` — warns when Limine boot entries need `limine-mkinitcpio`
 - `/usr/share/sddm/themes/cachyos/` + `/etc/sddm.conf.d/10-theme.conf` — login screen (see above)
+- `/usr/local/bin/sddm-theme-sync` + `/etc/systemd/system/sddm-theme-sync.{path,service}` — keeps both screens on the current wallpaper
 
 ## Notes
 
