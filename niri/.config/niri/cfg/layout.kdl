@@ -4,6 +4,14 @@
 
         background-color "transparent" // <- needed for noctalia-shell to set wallpaper
 
+        // Akane theme: vermillion -> gold gradient ring on the focused window.
+        // The window border stays off (niri default).
+        focus-ring {
+            active-gradient from="#e15a48" to="#f0b45a" angle=45
+            inactive-color "#2c2438"
+            urgent-color "#d6453d"
+        }
+
         preset-column-widths {
             proportion 0.33333
             proportion 0.5
