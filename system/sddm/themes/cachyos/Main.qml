@@ -17,12 +17,16 @@ import SddmComponents 2.0
 Rectangle {
     id: root
 
-    // Background is the Akane theme's dusk navy, so the greeter matches the
-    // desktop (Noctalia palette "akane"). The controls keep the CachyOS cyan of
-    // the wordmark above them; failures use Akane's red.
-    readonly property color bgColor: "#12101c"      // akane background
-    readonly property color accentColor: "#02c9e1"  // cachyos cyan: padlock + box
-    readonly property color dangerColor: "#d6453d"  // akane red: failed password
+    // Colours follow the Akane theme's own lock screen recipe, the variables in
+    // its hyprlock.conf: $color (background) #12101c, $outer_color (field
+    // outline) #e15a48, $font_color (text and dots) #f0c4a8. The field fill is
+    // $inner_color, the same colour as the background, so it stays transparent
+    // here. Failures use the palette's red, plus a faint fill, because the
+    // accent itself is already vermillion.
+    readonly property color bgColor: "#12101c"      // akane $color
+    readonly property color accentColor: "#e15a48"  // akane $outer_color
+    readonly property color textColor: "#f0c4a8"    // akane $font_color
+    readonly property color dangerColor: "#d6453d"  // akane red
 
     // The layout is designed for 1920x1200. Screen.height is in logical pixels,
     // so on a HiDPI panel SDDM's scale factor cancels out and every element
@@ -37,6 +41,17 @@ Rectangle {
     width: Screen.width
     height: Screen.height
     color: bgColor
+    clip: true
+
+    // Wallpaper background, made by system/sddm/make-background.sh from the
+    // current Noctalia wallpaper — the Akane theme puts its own lock screen on
+    // the wallpaper too. The flat colour above stays as the fallback.
+    Image {
+        anchors.fill: parent
+        source: "background.jpg"
+        fillMode: Image.PreserveAspectCrop
+        smooth: true
+    }
 
     property bool loginFailed: false
 
@@ -82,18 +97,18 @@ Rectangle {
     Column {
         id: column
         anchors.centerIn: parent
-        spacing: 28 * root.s
+        spacing: 26 * root.s
         opacity: 0
 
         Image {
             anchors.horizontalCenter: parent.horizontalCenter
             source: "wordmark.png"
-            // Native size of the artwork, drawn 1:1 (243x66 is the same size the
-            // boot splash uses). No enlargement, so no visible pixel blocks;
-            // smooth: false keeps it that way when the greeter scales.
-            width: 243 * root.s
-            height: 66 * root.s
-            smooth: false
+            // White mark built from the vector emblem plus the terminal font's
+            // heavy cut: 773x145 native, smooth art, so it stays sharp at any
+            // scale instead of showing the old bitmap's pixel blocks.
+            width: 773 * root.s
+            height: 145 * root.s
+            smooth: true
             fillMode: Image.PreserveAspectFit
         }
 
@@ -146,6 +161,23 @@ Rectangle {
 
                 Rectangle {
                     anchors.fill: parent
+                    // $inner_color in the theme's hyprlock.conf: the background
+                    // colour at 80%, which keeps the field readable over the
+                    // wallpaper.
+                    color: "#cc12101c"
+                }
+
+                // Failure tint, stacked on top of that fill rather than replacing
+                // it - otherwise the field would become see-through exactly when
+                // the error needs to be clear.
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#66d6453d"
+                    visible: root.loginFailed
+                }
+
+                Rectangle {
+                    anchors.fill: parent
                     color: "transparent"
                     border.width: 2 * root.s
                     border.color: root.loginFailed ? root.dangerColor : root.accentColor
@@ -166,7 +198,7 @@ Rectangle {
                             width: 6 * root.s
                             height: width
                             radius: width / 2
-                            color: root.loginFailed ? root.dangerColor : root.accentColor
+                            color: root.textColor // dots use the theme's font colour
                         }
                     }
                 }

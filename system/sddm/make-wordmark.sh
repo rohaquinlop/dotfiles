@@ -1,37 +1,53 @@
 #!/usr/bin/env bash
-# Copies CachyOS's own wordmark into the theme: themes/cachyos/wordmark.png.
+# Regenerates themes/cachyos/wordmark.png: the login mark, in white.
 #
-# Source: /usr/share/plymouth/themes/cachyos/watermark.png — the wordmark that
-# the distro's Plymouth boot splash shows at boot (package
-# cachyos-plymouth-theme). 243x66 of artwork, and there is no vector version:
-# the CachyOS repos only ship the square emblem (cachyos.svg), and their website
-# writes "CachyOS" as text next to that emblem.
+# The old mark was the Plymouth boot watermark: only 243x66, teal and cyan. It
+# was too soft for a wallpaper background and its colours fought the Akane
+# palette. This one is built instead from two crisp sources:
 #
-# It is copied at 1:1, with no resize at all: the artwork is a small bitmap, so
-# any enlargement shows its pixel blocks. The theme draws it at exactly this
-# size (243x66, smooth: false), which is also how the boot splash shows it.
-# Keep these numbers in sync with the Image element in Main.qml.
+#   1. the distro's vector emblem, /usr/share/icons/cachyos.svg (what GDM uses),
+#      rasterised at 200px and recoloured to white through its alpha channel;
+#   2. "CACHYOS" set in Noto Sans Mono Condensed Black - the heavy cut of the
+#      terminal font - in white.
 #
-# The mark is also baked into noctalia's lock screen background, so the login
-# screen, the lock screen and the boot splash all show the same artwork.
+# White keeps it readable over any wallpaper, and the emblem is vector, so the
+# mark stays sharp at any screen scale. Set WD_TEXT to change the name.
 set -euo pipefail
 
 cd "$(dirname "$0")"
 
-src="${1:-/usr/share/plymouth/themes/cachyos/watermark.png}"
-[ -f "$src" ] || { echo "wordmark source not found: $src (install cachyos-plymouth-theme)" >&2; exit 1; }
+emblem_svg="${EMBLEM_SVG:-/usr/share/icons/cachyos.svg}"
+emblem_px=200
+text="${WD_TEXT:-CACHYOS}"
+font="$(fc-match -f '%{file}' 'NotoSansM Nerd Font Mono:style=Condensed Black')"
 
-magick "$src" -trim +repage -depth 8 -strip PNG32:themes/cachyos/wordmark.png
-identify -format 'themes/cachyos/wordmark.png: %wx%h (native, not scaled)\n' themes/cachyos/wordmark.png
+[ -f "$emblem_svg" ] || { echo "emblem not found: $emblem_svg (install cachyos-icons?)" >&2; exit 1; }
+[ -f "$font" ] || { echo "font not found: install ttf-noto-nerd" >&2; exit 1; }
 
-# Noctalia's lock screen background: the flat theme background with the mark
-# centred, which is how the greeter lays it out too (mark centred, box below).
-# The colour is Akane's background; keep it equal to bgColor in
-# themes/cachyos/Main.qml so the greeter and the lock screen match.
-# The login box itself is a Noctalia widget placed at cy 520 of 960 logical.
-lock_bg="../../noctalia/.config/noctalia/assets/lock-background.png"
-if [ -d "$(dirname "$lock_bg")" ]; then
-  magick -size 1920x1200 xc:"#12101c" themes/cachyos/wordmark.png -gravity center -composite \
-    -depth 8 -strip PNG24:"$lock_bg"
-  identify -format "$lock_bg: %wx%h (mark baked in)\n" "$lock_bg"
-fi
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+# emblem: vector -> raster -> white silhouette (the facets are gradients, so the
+# monochrome version is the shape itself)
+magick -background none -density 400 "$emblem_svg" -resize "${emblem_px}x${emblem_px}" "$work/e.png"
+magick "$work/e.png" -alpha extract -alpha off "$work/e-alpha.png"
+magick -size "${emblem_px}x${emblem_px}" xc:white "$work/e-alpha.png" -alpha off -compose CopyOpacity -composite "$work/emblem.png"
+
+# name: white text, tracked out a little like the original wordmark
+magick -background none -fill white -font "$font" -pointsize 140 -kerning 6 \
+  label:"$text" -trim +repage "$work/text.png"
+
+# Trim both parts, then place them by hand: -smush and -gravity misalign with
+# this patched font's metrics, and the offsets are easier to reason about.
+magick "$work/emblem.png" -trim +repage "$work/emblem.png"
+magick "$work/text.png" -trim +repage "$work/text.png"
+read -r ew eh <<<"$(magick identify -format '%w %h' "$work/emblem.png")"
+read -r tw th <<<"$(magick identify -format '%w %h' "$work/text.png")"
+gap=36
+
+magick -size "$((ew + gap + tw))x${eh}" xc:none \
+  "$work/emblem.png" -geometry +0+0 -composite \
+  "$work/text.png" -geometry "+$((ew + gap))+$(((eh - th) / 2))" -composite \
+  -depth 8 -strip PNG32:themes/cachyos/wordmark.png
+
+identify -format 'themes/cachyos/wordmark.png: %wx%h (white, emblem from vector)\n' themes/cachyos/wordmark.png
