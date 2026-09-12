@@ -1,0 +1,62 @@
+# Noctalia shell config (tracked in dotfiles; stowed to ~/.config/noctalia/).
+#
+# GUI-managed overrides live in ~/.local/state/noctalia/settings.toml and always
+# win over this file. If a value here seems ignored, check that file first.
+
+[shell]
+polkit_agent = true
+
+# Fixed palette: Akane (system/sddm/... carries the same colours for the login
+# screen). No wallpaper-derived palette: that generator goes pastel and drops
+# the theme's navy/teal pairing. GUI changes beat this file - see the README.
+[theme]
+source = "custom"
+custom_palette = "akane"
+mode = "dark"
+
+# Lock screen: same look as the SDDM login screen (system/sddm/themes/cachyos).
+# No blurred desktop capture, no blur, no tint: just the flat Catppuccin base
+# colour, the CachyOS wordmark, and a slim password row.
+[lockscreen]
+enabled = true
+lock_before_suspend = true # lock on logind PrepareForSleep (lid close / suspend)
+fingerprint = true         # fprintd is installed on the ThinkPad
+blurred_desktop = false
+blur_intensity = 0.0
+tint_intensity = 0.0
+wallpaper = "/home/rohaquinlop/.config/noctalia/assets/lock-background.png"
+
+# Widgets render over that background. The mark is baked into
+# assets/lock-background.png (see system/sddm/make-wordmark.sh), so only the
+# login box is a widget: one less thing that can fail to draw.
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = ["lockscreen-login-box@eDP-1"]
+
+# Login box: compact layout, no card background, no media/weather/session extras.
+# cy 520 puts it just under the mark, matching the greeter's spacing.
+[lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
+type = "login_box"
+output = "eDP-1"
+cx = 768.0
+cy = 520.0
+box_width = 240.0
+box_height = 64.0
+rotation = 0.0
+
+[lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
+layout = "compact"
+show_session_buttons = false
+show_media = false
+show_weather = false
+show_keyboard_layout = false
+show_login_button = false
+show_unlock_hint = true # auth prompts (fingerprint, "Authenticating...")
+show_caps_lock = true
+center_password_text = false
+input_opacity = 0.9
+input_radius = 4.0
+background_color = "surface_variant"
+background_opacity = 0.0 # no card: the field floats on the flat background
+background_radius = 0.0

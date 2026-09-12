@@ -21,6 +21,7 @@ STOW_PACKAGES=(
   nvim starship btop git gh
   herdr niri
   config-misc
+  noctalia
 )
 
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
