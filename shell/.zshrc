@@ -149,8 +149,20 @@ alias gl='git pull'
 alias gp='git push'
 alias glog='git log --oneline --graph --decorate'
 
+# Arch/CachyOS helpers
 if [[ "$OSTYPE" == linux* ]]; then
+  alias update='sudo pacman -Syu'
+  alias cleanup='sudo pacman -Rsn $(pacman -Qtdq)'
+  alias rmpkg='sudo pacman -Rsn'
+  alias fixpacman='sudo rm /var/lib/pacman/db.lck'
+  alias jctl='journalctl -p 3 -xb'
+  alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
+
   open() ( xdg-open "$@" >/dev/null 2>&1 & )
+
+  # pkgfile: suggest the package that provides a missing command
+  [[ -r /usr/share/doc/pkgfile/command-not-found.zsh ]] && \
+    source /usr/share/doc/pkgfile/command-not-found.zsh
 fi
 
 # ── Python virtualenv: auto-activate .venv on cd ────────────────────
