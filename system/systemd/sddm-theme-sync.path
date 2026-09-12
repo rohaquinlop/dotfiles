@@ -1,0 +1,10 @@
+# Trigger: Noctalia persists wallpaper changes here.
+[Unit]
+Description=Watch Noctalia settings for wallpaper changes
+
+[Path]
+PathChanged=/home/rohaquinlop/.local/state/noctalia/settings.toml
+Unit=sddm-theme-sync.service
+
+[Install]
+WantedBy=paths.target

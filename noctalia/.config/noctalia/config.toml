@@ -24,11 +24,14 @@ fingerprint = true         # fprintd is installed on the ThinkPad
 blurred_desktop = false
 blur_intensity = 0.0
 tint_intensity = 0.0
-wallpaper = "/home/rohaquinlop/.config/noctalia/assets/lock-background.png"
+wallpaper = "/home/rohaquinlop/.local/state/noctalia/lock-background.jpg"
 
 # Widgets render over that background. The mark is baked into
-# assets/lock-background.png (see system/sddm/make-wordmark.sh), so only the
-# login box is a widget: one less thing that can fail to draw.
+# /home/rohaquinlop/.local/state/noctalia/lock-background.jpg, generated from the
+# current wallpaper by /usr/local/bin/sddm-theme-sync (a systemd path unit keeps
+# it fresh), so only the login box is a widget: one less thing that can fail to
+# draw. If that file is ever missing, set wallpaper = "" to fall back to the
+# desktop wallpaper without the mark.
 [lockscreen_widgets]
 enabled = true
 schema_version = 2

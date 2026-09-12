@@ -114,6 +114,28 @@ install_system_files() {
     log_ok "script: /usr/local/bin/$(basename "$script")"
   done
 
+  if [ -d system/systemd ]; then
+    for unit in system/systemd/*; do
+      [ -f "$unit" ] || continue
+      sudo cp "$unit" "/etc/systemd/system/$(basename "$unit")"
+      log_ok "systemd unit: $(basename "$unit")"
+    done
+    sudo systemctl daemon-reload
+
+    # Watches Noctalia's settings.toml, so changing the wallpaper rebuilds the
+    # login and lock screen backgrounds without another install run.
+    if sudo systemctl enable --now sddm-theme-sync.path >/dev/null 2>&1; then
+      log_ok "sddm-theme-sync.path"
+    else
+      log_warn "could not enable sddm-theme-sync.path"
+    fi   # the sync script itself is installed just above, by the local/bin loop
+    if sudo /usr/local/bin/sddm-theme-sync; then
+      log_ok "login + lock screen backgrounds"
+    else
+      log_warn "background sync failed — check that a wallpaper is set in Noctalia"
+    fi
+  fi
+
   sudo udevadm control --reload-rules
   sudo udevadm trigger
   log_ok "System files installed"

@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Keeps the login screen and the lock screen on the same wallpaper.
+#
+# Both screens need the wallpaper as a pre-rendered image, because neither the
+# SDDM greeter (the home directory is mode 700) nor Noctalia's lock screen can
+# take it from the live desktop:
+#
+#   /usr/share/sddm/themes/cachyos/background.jpg        greeter, mark drawn on top by QML
+#   <home>/.local/state/noctalia/lock-background.jpg      lock screen, mark baked in
+#
+# It runs as root from sddm-theme-sync.path, which watches Noctalia's
+# settings.toml, so switching the wallpaper updates both screens with no manual
+# step. Run it by hand after changing it:
+#
+#   sudo sddm-theme-sync
+#
+# Overrides (used by the tests, and handy on another machine):
+#   TARGET_HOME  user whose Noctalia state and home directory to use
+#   THEME_DIR    where to write the greeter background
+#   STATE_DIR    where to write the lock screen background
+#   SCRIM        darkening over the wallpaper, default 55%
+set -euo pipefail
+
+target_home="${TARGET_HOME:-/home/rohaquinlop}"
+theme_dir="${THEME_DIR:-/usr/share/sddm/themes/cachyos}"
+state_dir="${STATE_DIR:-$target_home/.local/state/noctalia}"
+scrim="${SCRIM:-55}"
+
+settings="$target_home/.local/state/noctalia/settings.toml"
+lock_bg="$state_dir/lock-background.jpg"
+greeter_bg="$theme_dir/background.jpg"
+wordmark="$theme_dir/wordmark.png"
+stamp="$state_dir/.sddm-theme-sync.stamp"
+
+command -v magick >/dev/null || { echo "imagemagick is required" >&2; exit 1; }
+[ -f "$settings" ] || { echo "no Noctalia settings at $settings" >&2; exit 1; }
+
+# Wallpaper: the persisted default, else whatever Noctalia is showing now.
+wallpaper="$(sed -n 's/^\[wallpaper\.default\]$//; t; /^path = / { s/^path = "\(.*\)"$/\1/p; q }' "$settings")"
+if [ ! -f "$wallpaper" ]; then
+  wallpaper="$(sed -n '/^\[wallpaper\.last\]/,/^\[/ s/^path = "\(.*\)"$/\1/p' "$settings" | head -1)"
+fi
+[ -f "$wallpaper" ] || { echo "wallpaper not found (settings say: ${wallpaper:-nothing})" >&2; exit 1; }
+
+# Nothing to do when both outputs are already built from this wallpaper.
+source_stamp="$(stat -c '%n %Y %s' "$wallpaper")"
+if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$source_stamp" ] &&
+   [ -f "$greeter_bg" ] && [ -f "$lock_bg" ]; then
+  exit 0
+fi
+
+mkdir -p "$theme_dir" "$state_dir"
+
+# 1920x1200 is this panel; QML crops rather than stretches, so other sizes are safe.
+magick "$wallpaper" -resize 1920x1200^ -gravity center -extent 1920x1200 \
+  -fill '#12101c' -colorize "$scrim" -quality 90 -strip "$greeter_bg"
+
+if [ -f "$wordmark" ]; then
+  magick "$greeter_bg" "$wordmark" -gravity center -composite -quality 90 -strip "$lock_bg"
+else
+  cp "$greeter_bg" "$lock_bg" # mark missing: still keep the wallpaper in sync
+fi
+
+# The lock background lives in the user's state directory, so hand it back.
+if [ "$(id -u)" = 0 ] && [ -n "${SUDO_UID:-}" ]; then
+  chown "${SUDO_UID}:${SUDO_GID:-$SUDO_UID}" "$lock_bg" 2>/dev/null || true
+elif [ "$(id -u)" = 0 ]; then
+  owner="$(stat -c '%u:%g' "$settings")"
+  chown "$owner" "$lock_bg" 2>/dev/null || true
+fi
+
+printf '%s\n' "$source_stamp" > "$stamp"
+[ "$(id -u)" = 0 ] && chown "$(stat -c '%u:%g' "$settings")" "$stamp" 2>/dev/null || true
+
+echo "synced: $wallpaper -> $greeter_bg, $lock_bg"

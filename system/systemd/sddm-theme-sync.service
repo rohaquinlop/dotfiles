@@ -1,0 +1,9 @@
+# Rebuilds the login and lock screen backgrounds. Started by the .path unit when
+# Noctalia saves a new wallpaper, and once by install.sh.
+[Unit]
+Description=Sync the SDDM login and Noctalia lock screen backgrounds
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/sddm-theme-sync
