@@ -1,199 +1,121 @@
 # Dotfiles
 
-Personal Omarchy/Hyprland configuration for ThinkPad X1 Carbon Gen 9.
+Personal **CachyOS + niri** configuration for a ThinkPad X1 Carbon Gen 9.
+The shell, editor, terminal and prompt configs are shared with a MacBook Pro.
 
 Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
 ## Fresh Install
 
 ```bash
-git clone https://github.com/rohaquinlop/dotfiles.git ~/.dotfiles
+git clone git@github.com:rohaquinlop/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
+sudo pacman -S --needed $(cat packages.txt)
 ./install.sh
 ```
 
-The install script will:
-- Stow all user config packages using `stow --no-folding`
-- Install Hyprland config via manual symlinks (Hyprland watchdog overwrites directory symlinks)
-- Install system-level files (udev rules, scripts) with sudo
-- Reload Hyprland
+The installer:
 
-## How It Works
+- Backs up conflicting files to `~/.dotfiles-backup-<timestamp>/`
+- Stows every user package with `stow --no-folding`
+- Installs system files (Vial udev rules, keyd config, Limine `mkinitcpio` wrapper) with `sudo`
 
-Configs live in `~/.dotfiles/` as stow packages. Each package mirrors the target directory structure under `~`.
+niri reloads its configuration automatically after the files change.
 
-```
-~/.dotfiles/hypr/.config/hypr/bindings.conf  →  ~/.config/hypr/bindings.conf
-~/.dotfiles/shell/.bashrc                     →  ~/.bashrc
-~/.dotfiles/mise/.config/mise/config.toml     →  ~/.config/mise/config.toml
-```
-
-When you edit `~/.config/hypr/bindings.conf`, you're actually editing the file in the repo. Changes are tracked automatically.
-
-## Stow Packages
+## Packages
 
 | Package | Target | Description |
 |---------|--------|-------------|
-| `shell` | `~/` | Shell configs (.bashrc, .zshrc, .profile, .bash_profile) |
-| `hypr` | `~/.config/hypr/` | Hyprland window manager (manual symlinks) |
-| `alacritty` | `~/.config/alacritty/` | Alacritty terminal |
+| `shell` | `~/` | zsh + bash: starship, zoxide, fzf, eza, git aliases, venv hook |
+| `niri` | `~/.config/niri/` | Window manager config + universal clipboard scripts |
+| `alacritty` | `~/.config/alacritty/` | Terminal (catppuccin theme, persistent font size) |
 | `nvim` | `~/.config/nvim/` | Neovim (LazyVim) |
-| `starship` | `~/.config/starship.toml` | Starship prompt |
+| `starship` | `~/.config/starship.toml` | Prompt (catppuccin mocha) |
 | `btop` | `~/.config/btop/` | System monitor |
 | `git` | `~/.config/git/` | Git configuration |
 | `gh` | `~/.config/gh/` | GitHub CLI |
-| `lazygit` | `~/.config/lazygit/` | Git TUI |
-| `mise` | `~/.config/mise/` | Runtime version manager |
-| `omarchy` | `~/.config/omarchy/` | Omarchy themes, branding, hooks |
-| `opencode` | `~/.config/opencode/` | Opencode AI assistant |
-| `herdr` | `~/.config/herdr/` | Herdr TUI settings (pi coding agent) |
-| `fcitx5` | `~/.config/fcitx5/` | Input method + environment.d |
-| `config-misc` | `~/.config/` | Loose configs (chromium-flags, mimeapps, autostart, fontconfig, gtk, imv, obsidian) |
-| `desktop-entries` | `~/.local/share/applications/` | Desktop entries and app icons |
-| `local-icons` | `~/.local/share/icons/` | Hicolor icon theme |
-| `local-state` | `~/.local/state/` | Omarchy toggle state |
+| `herdr` | `~/.config/herdr/` | Herdr terminal workspace manager |
+| `config-misc` | `~/.config/` | fontconfig, GTK bookmarks, mimeapps, chromium flags, imv, obsidian |
 
-## Syncing Between Machines
+`lazygit` is installed but intentionally **not** stowed: its config can contain
+credentials. Everything else is symlinked into the repo, so editing a config in
+`~/.config` edits the tracked file.
 
-This repo is the single source of truth for the Omarchy laptop and the MacBook.
-After pulling changes on the other machine:
+## Key Bindings (niri)
+
+Ported from the old Omarchy/Hyprland muscle memory:
+
+| Keys | Action |
+|------|--------|
+| `Super+Return`, `Super+Q` | Alacritty |
+| `Super+W` | Close window |
+| `Super+Alt+Q` | Herdr |
+| `Super+Shift+Return`, `Super+B`, `Super+Shift+B` | Chromium |
+| `Super+Shift+Alt+B` | Chromium (private) |
+| `Super+E`, `Super+Shift+F` | Nautilus |
+| `Super+Shift+N` | Neovim in Alacritty |
+| `Super+C` / `Super+V` / `Super+X` | Universal copy / paste / cut |
+| `Super+Ctrl+V` | Clipboard history (Noctalia) |
+| `Print`, `Super+Shift+S` | Screenshot (clipboard + `~/Pictures/Screenshots`) |
+| `Super+Print` | Color picker |
+| `Super+Shift+arrows` | Move window / column |
+| `Super+1..9` / `Super+Shift+1..9` | Focus / move to workspace |
+| `Super+Space` | Noctalia launcher |
+| `Super+S` | Noctalia control center |
+| `Super+Alt+L` | Lock screen |
+
+### Universal copy/paste
+
+`Super+C`, `Super+V` and `Super+X` inject the right shortcut into the focused
+window with `wtype`: terminals get `Ctrl+Insert` / `Shift+Insert`, everything
+else gets `Ctrl+C` / `Ctrl+V` / `Ctrl+X`. This reproduces Omarchy's universal
+clipboard. The scripts live in `niri/.config/niri/scripts/` and detect terminals
+by `app_id` from `niri msg --json focused-window`.
+
+## How It Works
+
+Each package mirrors the target path under `~`:
+
+```
+~/.dotfiles/niri/.config/niri/cfg/keybinds.kdl  ->  ~/.config/niri/cfg/keybinds.kdl
+~/.dotfiles/shell/.zshrc                        ->  ~/.zshrc
+```
+
+### Stow commands
+
+```bash
+cd ~/.dotfiles
+
+# Stow / unstow a single package
+stow --no-folding -t ~ nvim
+stow -D -t ~ nvim
+
+# Dry run (check for conflicts)
+stow --no-folding -n -v -t ~ nvim
+```
+
+**Always pass `--no-folding`.** Without it stow symlinks whole directories
+instead of individual files.
+
+## Syncing with the MacBook
 
 ```bash
 cd ~/.dotfiles && git pull
-stow --no-folding -t ~ nvim   # new plugin files need re-stowing
+stow --no-folding -t ~ nvim   # re-stow when new plugin files appear
 ```
 
-If `~/.config/herdr/config.toml` already exists there as a regular file, back it
-up before stowing herdr (stow refuses to overwrite):
-
-```bash
-mv ~/.config/herdr/config.toml ~/.config/herdr/config.toml.bak
-stow --no-folding -t ~ herdr
-```
-
-For nvim, the lockfile pins plugin versions. After pulling:
-
-1. Run `nvim` once — new plugins auto-install.
-2. Run `:Lazy sync` to align all plugins to the committed `lazy-lock.json`.
-3. Check `:Mason` — ruff, pyright, and efm-langserver must be installed.
-4. `nvim --version` must be 0.11 or newer (LazyVim requirement).
-
-Starship and alacritty need no per-machine work — both packages are already
-stowed on the Omarchy laptop.
-
-## Daily Workflow
-
-After changing any config:
-
-```bash
-cd ~/.dotfiles
-
-# See what changed
-git status
-
-# Review changes
-git diff
-
-# Commit and push
-git add -A
-git commit -m "Description of change"
-git push
-```
-
-### Examples
-
-```bash
-# Changed keybindings
-git add -A && git commit -m "Add Super+E for file manager" && git push
-
-# Updated theme
-git add -A && git commit -m "Switch to catppuccin mocha" && git push
-
-# New starship config
-git add -A && git commit -m "Add starship prompt tweaks" && git push
-```
-
-### Quick Alias (Optional)
-
-Add to your `~/.zshrc`:
-
-```bash
-alias dotfiles='cd ~/.dotfiles && git'
-```
-
-## Adding New Configs
-
-To track a new config file with stow:
-
-```bash
-# Create the package structure
-mkdir -p ~/.dotfiles/new-app/.config/new-app
-
-# Move the file
-mv ~/.config/new-app/config ~/.dotfiles/new-app/.config/new-app/config
-
-# Stow it
-cd ~/.dotfiles
-stow --no-folding -t ~ new-app
-
-# Commit
-git add -A
-git commit -m "Add new-app config"
-git push
-```
-
-## Stowing Individual Packages
-
-You can stow/unstow individual packages:
-
-```bash
-cd ~/.dotfiles
-
-# Stow a single package
-stow --no-folding -t ~ btop
-
-# Unstow a single package
-stow -D -t ~ btop
-
-# Dry-run (see what would happen)
-stow --no-folding -n -v -t ~ btop
-```
-
-## What's Excluded
-
-- `~/.ssh/` — SSH keys and known_hosts
-- `~/.local/bin/` — Custom scripts and binaries
-- `~/.config/gh/hosts.yml` — GitHub authentication token
-- `~/.config/nvim/lazy-lock.json` — Generated plugin lockfile
-- `~/.cargo/env` — Auto-generated by rustup
+For Neovim run `:Lazy sync`, then check `:Mason` for `efm-langserver`.
+`nvim --version` must be 0.11+.
 
 ## System-Level Files
 
-The following files require `sudo` to install and are copied (not symlinked):
+Copied with `sudo` by `install.sh` (not symlinked):
 
-- `/etc/udev/rules.d/99-battery-thresholds.rules` — Battery charge thresholds
-- `/etc/udev/rules.d/99-power-profile.rules` — Power profile auto-switch
-- `/etc/udev/rules.d/99-wifi-powersave.rules` — WiFi powersave toggle
-- `/etc/udev/rules.d/99-vial.rules` — Vial keyboard access
-- `/etc/udev/rules.d/59-vial.rules` — Vial keyboard serial access
-- `/usr/local/bin/thinkpad-desk-mode.sh` — Battery threshold manager
-- `/usr/local/bin/mkinitcpio` — mkinitcpio wrapper with Limine warning
+- `/etc/udev/rules.d/59-vial.rules`, `/etc/udev/rules.d/99-vial.rules` — Vial keyboard access
+- `/etc/keyd/default.conf` — Caps Lock → Backspace
+- `/usr/local/bin/mkinitcpio` — warns when Limine boot entries need `limine-mkinitcpio`
 
-## Restoring on Fresh Install
+## Notes
 
-1. Install Omarchy on a fresh Arch Linux system
-2. Clone this repo and run the install script:
-   ```bash
-   git clone https://github.com/rohaquinlop/dotfiles.git ~/.dotfiles
-   cd ~/.dotfiles
-   ./install.sh
-   ```
-3. Authenticate GitHub CLI:
-   ```bash
-   gh auth login
-   ```
-4. Install packages via omarchy:
-   ```bash
-   omarchy pkg install <packages>
-   ```
-5. Recreate `~/.local/bin/` scripts if needed
+- `herdr` binary lives in `~/.local/bin` and `pi` comes from bun; neither is
+  tracked here (reinstall them after a disk wipe).

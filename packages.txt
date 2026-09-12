@@ -1,0 +1,11 @@
+stow
+neovim
+starship
+lazygit
+github-cli
+zoxide
+wtype
+keyd
+ttf-jetbrains-mono-nerd
+ty
+python-ruff

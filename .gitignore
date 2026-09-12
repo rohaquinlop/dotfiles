@@ -4,13 +4,13 @@
 .dotfiles-backup-*/
 
 # Sensitive files
-gh/gh/hosts.yml
+gh/.config/gh/hosts.yml
+lazygit/.config/lazygit/config.yml
 shell/.ssh/
-local-icons/icons/hicolor/index.theme
 
 # Generated files
-lazygit/lazygit/config.yml
 nvim/.config/nvim/lazy-lock.json
+alacritty/.config/alacritty/local.toml
 
 # Editor temp files
 *~

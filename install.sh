@@ -1,7 +1,8 @@
 #!/bin/bash
+# Dotfiles installer for CachyOS + niri (also used by the MacBook for syncing).
 set -euo pipefail
 
-DOTFILES_DIR="$HOME/.dotfiles"
+DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DOTFILES_DIR"
 
 RED='\033[0;31m'
@@ -15,31 +16,28 @@ log_ok()    { echo -e "${GREEN}[OK]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# Packages that work with normal stow (--no-folding)
 STOW_PACKAGES=(
   shell alacritty
-  nvim starship btop git gh lazygit mise
-  herdr
-  omarchy opencode
-  fcitx5 config-misc
-  desktop-entries local-icons local-state
+  nvim starship btop git gh
+  herdr niri
+  config-misc
 )
 
-# Packages that need --adopt on first run (have existing files)
-ADOPT_PACKAGES=(local-icons)
+BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
-# Hyprland's watchdog replaces directory symlinks with its own directory,
-# so we create individual file symlinks manually instead of using stow.
-install_hypr() {
-  log_info "Installing hypr config (manual symlinks)..."
-  local src="$DOTFILES_DIR/hypr/.config/hypr"
-  local dst="$HOME/.config/hypr"
-  mkdir -p "$dst/scripts"
-  for f in "$src"/*.conf; do
-    ln -sf "$f" "$dst/$(basename "$f")"
-  done
-  ln -sf "$src/scripts/fix-thermald.sh" "$dst/scripts/fix-thermald.sh"
-  log_ok "hypr"
+# Move existing regular files out of the way so stow can create its symlinks.
+# (First run on a fresh OS: the distro's default .zshrc, niri config, etc.)
+backup_conflicts() {
+  local pkg="$1" src rel dst
+  while IFS= read -r src; do
+    rel="${src#"$DOTFILES_DIR/$pkg/"}"
+    dst="$HOME/$rel"
+    if [ -e "$dst" ] && [ ! -L "$dst" ]; then
+      mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
+      mv "$dst" "$BACKUP_DIR/$rel"
+      log_warn "backed up ~/$rel"
+    fi
+  done < <(find "$DOTFILES_DIR/$pkg" -type f)
 }
 
 stow_packages() {
@@ -51,15 +49,9 @@ stow_packages() {
       continue
     fi
 
-    local adopt_flag=""
-    for ap in "${ADOPT_PACKAGES[@]}"; do
-      if [ "$ap" = "$pkg" ]; then
-        adopt_flag="--adopt"
-        break
-      fi
-    done
+    backup_conflicts "$pkg"
 
-    if stow --no-folding $adopt_flag -t ~ "$pkg" 2>/dev/null; then
+    if stow --no-folding -t ~ "$pkg" 2>/dev/null; then
       log_ok "$pkg"
     else
       log_error "Failed: $pkg"
@@ -88,7 +80,11 @@ install_system_files() {
       sudo cp "$conf" "/etc/keyd/$(basename "$conf")"
       log_ok "keyd config: $(basename "$conf")"
     done
-    sudo systemctl enable --now keyd 2>/dev/null && log_ok "keyd.service"
+    if pacman -Qq keyd >/dev/null 2>&1; then
+      sudo systemctl enable --now keyd 2>/dev/null && log_ok "keyd.service"
+    else
+      log_warn "keyd is not installed — skipping keyd.service"
+    fi
   fi
 
   for script in system/local/bin/*; do
@@ -98,40 +94,27 @@ install_system_files() {
     log_ok "script: /usr/local/bin/$(basename "$script")"
   done
 
-  for svc in systemd/system/*.service; do
-    [ -f "$svc" ] || continue
-    local svc_name
-    svc_name=$(basename "$svc")
-    sudo cp "$svc" "/etc/systemd/system/$svc_name"
-    sudo systemctl enable "$svc_name"
-    log_ok "system service: $svc_name"
-  done
-
-  sudo systemctl daemon-reload
   sudo udevadm control --reload-rules
   sudo udevadm trigger
   log_ok "System files installed"
 }
 
-reload_services() {
-  log_info "Reloading services..."
-  hyprctl reload 2>/dev/null && log_ok "Hyprland reloaded" || true
-  systemctl --user daemon-reload 2>/dev/null && log_ok "systemd user daemon reloaded" || true
-}
-
 main() {
   echo ""
   echo "=========================================="
-  echo "  Dotfiles Installer (stow)"
+  echo "  Dotfiles Installer (CachyOS + niri)"
   echo "=========================================="
   echo ""
 
-  install_hypr
+  if ! command -v stow >/dev/null 2>&1; then
+    log_error "stow is not installed."
+    echo "  sudo pacman -S --needed $(tr '\n' ' ' < packages.txt)"
+    exit 1
+  fi
+
   stow_packages
   echo ""
   install_system_files
-  echo ""
-  reload_services
 
   echo ""
   echo "=========================================="
@@ -139,6 +122,7 @@ main() {
   echo "=========================================="
   echo ""
   log_info "Restart your shell for changes to take effect."
+  [ -d "$BACKUP_DIR" ] && log_info "Old configs backed up to $BACKUP_DIR"
 }
 
 main "$@"
