@@ -27,7 +27,7 @@ niri reloads its configuration automatically after the files change.
 | Package | Target | Description |
 |---------|--------|-------------|
 | `shell` | `~/` | zsh + bash: starship, zoxide, fzf, eza, git aliases, venv hook |
-| `niri` | `~/.config/niri/` | Window manager config + universal clipboard scripts |
+| `niri` | `~/.config/niri/` | Window manager config, output layout, helper scripts |
 | `alacritty` | `~/.config/alacritty/` | Terminal (catppuccin theme, persistent font size) |
 | `nvim` | `~/.config/nvim/` | Neovim (LazyVim) |
 | `starship` | `~/.config/starship.toml` | Prompt (catppuccin mocha) |
@@ -35,7 +35,7 @@ niri reloads its configuration automatically after the files change.
 | `git` | `~/.config/git/` | Git configuration |
 | `gh` | `~/.config/gh/` | GitHub CLI |
 | `herdr` | `~/.config/herdr/` | Herdr terminal workspace manager |
-| `config-misc` | `~/.config/` | fontconfig, GTK bookmarks, mimeapps, chromium flags, imv, obsidian |
+| `config-misc` | `~/.config/` | fontconfig, GTK bookmarks, mimeapps, chromium flags, imv, obsidian, WirePlumber audio rules |
 | `noctalia` | `~/.config/noctalia/` | Lock screen: flat dark background with the CachyOS mark, compact login box |
 
 `lazygit` is installed but intentionally **not** stowed: its config can contain
@@ -64,6 +64,8 @@ Ported from the old Omarchy/Hyprland muscle memory:
 | `Super+Space` | Noctalia launcher |
 | `Super+S` | Noctalia control center |
 | `Super+Alt+L` | Lock screen |
+| `Super+P` | Toggle laptop panel (see [Displays](#displays)) |
+| `XF86MonBrightnessUp` / `Down` | Brightness of the current monitor |
 
 ### Universal copy/paste
 
@@ -72,6 +74,99 @@ window with `wtype`: terminals get `Ctrl+Insert` / `Shift+Insert`, everything
 else gets `Ctrl+C` / `Ctrl+V` / `Ctrl+X`. This reproduces Omarchy's universal
 clipboard. The scripts live in `niri/.config/niri/scripts/` and detect terminals
 by `app_id` from `niri msg --json focused-window`.
+
+### Displays
+
+`cfg/display.kdl` pins both outputs instead of letting niri guess, so the
+arrangement survives replugging: the MSI MP275Q sits **above** the laptop, and
+the laptop is centred under it.
+
+| Output | Mode | Scale | Logical | Position |
+|--------|------|-------|---------|----------|
+| `eDP-1` (laptop) | 1920x1200@60 | 1.25 | 1536x960 | 512,1440 |
+| `HDMI-A-1` (external) | 2560x1440@**100** | 1 | 2560x1440 | 0,0 |
+
+The monitor's *preferred* mode is 60 Hz. It also does 100 Hz, and the direct
+HDMI port carries that fine, so it is pinned explicitly — without the `mode`
+line niri picks the preferred 60 Hz.
+
+`Super+P` runs `scripts/niri-toggle-internal.sh`, which switches the laptop
+panel off and on. niri cannot express "panel off while the monitor is plugged
+in" in the config file, so it is a keybind instead. The script refuses to turn
+off the last enabled output, so it cannot black out the screen when the monitor
+is unplugged. `niri msg output` changes are temporary: any config reload brings
+the panel back.
+
+Audio does **not** follow the monitor. Plugging HDMI in used to move the default
+sink to the monitor's built-in speakers, so
+`config-misc/.config/wireplumber/wireplumber.conf.d/51-hdmi-sink-priority.conf`
+drops every HDMI sink to `priority.session = 400`:
+
+| Sink | Priority | When it wins |
+|------|----------|--------------|
+| Bluetooth (AirPods) | 1010 | whenever connected |
+| Laptop analog | 1000 | fallback — the normal default |
+| HDMI (monitor) | 400 | only if it is the last sink, or picked by hand |
+
+Picking the monitor by hand still works: `wpctl set-default <sink id>`. Check
+what the rule did with `wpctl inspect <sink id> | grep priority.session`.
+
+Bluetooth caveat: restarting WirePlumber (`systemctl --user restart
+wireplumber`) while Bluetooth headphones are connected drops their A2DP
+transport, and they go silent even though PipeWire still feeds their sink node.
+Reconnect them — `bluetoothctl disconnect <mac> && bluetoothctl connect <mac>` —
+or log out and back in. Editing these rules needs the restart, so reconnect
+afterwards.
+
+### Monitor brightness (DDC/CI)
+
+`/sys/class/backlight/` only has `intel_backlight`. The external monitor has no
+backlight device, so sysfs cannot dim it; DDC/CI is the only channel. `ddcutil`
+plus the `i2c-dev` module cover that — `i2c-dev` alone is not enough, because
+without it there are no `/dev/i2c-*` devices to write to.
+
+```bash
+ls /sys/class/backlight/    # only intel_backlight — why the monitor is unreachable
+ls /dev/i2c-*               # missing = i2c-dev is not loaded
+sudo ddcutil detect         # expect the MP275Q on bus i2c-2, card1-HDMI-A-1
+ddcutil getvcp 10           # 0x10 = brightness: current and max
+ddcutil setvcp 10 60        # set brightness to 60 of 100
+```
+
+No `sudo` and no `i2c` group are needed after setup: the `ddcutil` package ships
+`/usr/lib/udev/rules.d/60-ddcutil-i2c.rules`, which grants access with the
+`uaccess` tag. Noctalia uses the same path, so the brightness keys drive
+the current monitor.
+
+If `ddcutil detect` finds nothing, turn DDC/CI on in the monitor's OSD menu —
+MSI hides that switch under Settings.
+
+### Brightness keys
+
+Noctalia decides per monitor, and it ships `enable_ddcutil = false`. With that
+default the keys answer `error: current output has no brightness control` while
+the monitor is focused, because only the laptop panel has a kernel backlight.
+The `[brightness]` section at the end of `noctalia/.config/noctalia/config.toml`
+turns DDC on and names a backend per connector:
+
+| Connector | Backend |
+|-----------|---------|
+| `eDP-1` | `backlight`, device `intel_backlight` |
+| `HDMI-A-1` | `ddcutil` |
+
+`minimum_brightness = 0.05` stops a slip of the keys from blacking a screen.
+Verified: with the monitor focused `brightness-up` moves only the monitor
+(50 → 55), with the laptop focused only the laptop — the other screen does not
+move.
+
+Three things to know:
+
+- `noctalia msg config-reload` applies an edit without a restart.
+- The Noctalia settings GUI writes `~/.local/state/noctalia/settings.toml`, and
+  that file wins over the stowed config. If a brightness change seems ignored,
+  look for a `[brightness]` block there first.
+- If DDC picks the wrong bus, pin it per connector:
+  `[brightness.monitor."HDMI-A-1"] ddc_bus = 2`.
 
 ## How It Works
 
@@ -279,6 +374,7 @@ only the background, the mark and the panel shape come from this package.
 Copied with `sudo` by `install.sh` (not symlinked):
 
 - `/etc/udev/rules.d/59-vial.rules`, `/etc/udev/rules.d/99-vial.rules` — Vial keyboard access
+- `/etc/modules-load.d/i2c-dev.conf` — loads `i2c-dev` so `ddcutil` can set the external monitor's brightness
 - `/etc/keyd/default.conf` — Caps Lock → Backspace
 - `/usr/local/bin/mkinitcpio` — warns when Limine boot entries need `limine-mkinitcpio`
 - `/usr/share/sddm/themes/cachyos/` + `/etc/sddm.conf.d/10-theme.conf` — login screen (see above)

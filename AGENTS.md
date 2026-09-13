@@ -23,6 +23,8 @@ catppuccin overrides. See the README table for the full mapping.
 
 Non-stowed files (require `sudo cp`, handled by `install.sh`):
 - `system/udev/rules.d/` → `/etc/udev/rules.d/`
+- `system/modules-load.d/` → `/etc/modules-load.d/` (loads `i2c-dev`, for
+  monitor brightness — see the README)
 - `system/keyd/` → `/etc/keyd/`
 - `system/local/bin/` → `/usr/local/bin/`
 - `system/sddm/themes/cachyos/` → `/usr/share/sddm/themes/cachyos/`
@@ -74,6 +76,11 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
   `mkinitcpio -P` runs; it calls the CachyOS-native `limine-mkinitcpio`.
 - The CachyOS niri defaults live in `~/.config/niri/` and are tracked here after
   the first install; editing them directly edits the repo.
+- **Restarting WirePlumber silently kills connected Bluetooth audio.** The
+  A2DP transport is dropped while the PipeWire sink node keeps running, so the
+  headphones go mute with no error in any log. Reconnect them afterwards
+  (`bluetoothctl disconnect <mac> && bluetoothctl connect <mac>`) or log out —
+  this applies whenever the rules in `config-misc/.config/wireplumber/` change.
 
 ## Commands
 
