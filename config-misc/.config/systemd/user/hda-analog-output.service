@@ -1,0 +1,16 @@
+[Unit]
+Description=Select the analog output UCM profile that matches the headphone jack
+Documentation=file:%h/.local/bin/hda-analog-output
+# Not strictly required (the script waits for the card), but it keeps the first
+# profile change out of WirePlumber's startup, where the card may not exist yet.
+After=pipewire.service wireplumber.service
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/hda-analog-output
+# The script loops forever and only exits on error (missing tool, dying card).
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

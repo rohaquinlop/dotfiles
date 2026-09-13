@@ -65,6 +65,32 @@ stow_packages() {
   fi
 }
 
+# Stow only links the units a package ships under ~/.config/systemd/user; they
+# still have to be enabled, and restarted so an updated unit or script is used.
+enable_user_services() {
+  log_info "Enabling user services..."
+
+  if ! command -v systemctl >/dev/null 2>&1 || ! systemctl --user show-environment >/dev/null 2>&1; then
+    log_warn "no systemd user session — skipping"
+    return 0
+  fi
+
+  systemctl --user daemon-reload || log_warn "could not reload user units"
+
+  local unit
+  for unit in config-misc/.config/systemd/user/*.service; do
+    [ -f "$unit" ] || continue
+    unit="$(basename "$unit")"
+    if systemctl --user enable "$unit" >/dev/null 2>&1; then
+      log_ok "$unit"
+    else
+      log_warn "could not enable $unit"
+      continue
+    fi
+    systemctl --user restart "$unit" >/dev/null 2>&1 || log_warn "could not start $unit"
+  done
+}
+
 install_system_files() {
   log_info "Installing system-level files (requires sudo)..."
 
@@ -166,6 +192,8 @@ main() {
   fi
 
   stow_packages
+  echo ""
+  enable_user_services
   echo ""
   install_system_files
 

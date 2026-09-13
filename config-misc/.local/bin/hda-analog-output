@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# Keep the laptop speakers working while an external monitor is plugged in.
+#
+# The sof-hda-dsp UCM (ThinkPad X1 Carbon Gen 9, Realtek ALC287) splits the
+# analog output into two *conflicting* devices, so this card has two mutually
+# exclusive profiles and only one of them exists at a time:
+#
+#   HiFi (HDMI1, HDMI2, HDMI3, Mic1, Mic2, Speaker)     -> internal speakers
+#   HiFi (HDMI1, HDMI2, HDMI3, Headphones, Mic1, Mic2)  -> headphone jack
+#
+# Both profiles carry the HDMI outputs. As soon as a monitor is plugged in the
+# Headphones profile counts as "available" and wins on priority (10300 against
+# 10200) even though the headphone jack is empty. Plugged into the Headphones
+# profile, the empty jack makes ACP disable that device, so both the "Speaker"
+# and the "Headphone" playback switches end up off: no analog output is left,
+# and the laptop speakers cannot play anything no matter which sink is selected.
+#
+# WirePlumber cannot see the jack, so this service picks the profile from the
+# jack state alone: the Speaker profile while the jack is empty, the Headphones
+# profile while something is plugged in. It reacts to the ALSA jack event and
+# re-checks every POLL_SECONDS, so a missed event is corrected quickly. The
+# profile it sets is also stored by WirePlumber (device.restore-profile), which
+# keeps that choice stable across monitor hotplugs and reboots.
+#
+# Needs alsa-utils (amixer, alsactl), jq and pulse/pipewire-pulse (pactl).
+# Run by hand for a one-shot fix, or via hda-analog-output.service.
+set -u
+
+POLL_SECONDS="${HDA_ANALOG_POLL:-10}"
+# Optional override, e.g. HDA_ANALOG_CARD=alsa_card.pci-0000_00_1f.3-...
+CARD="${HDA_ANALOG_CARD:-}"
+
+log() { printf '%s\n' "$*" >&2; }
+
+for tool in pactl jq amixer alsactl stdbuf; do
+  command -v "$tool" >/dev/null 2>&1 || { log "hda-analog-output: $tool is not installed"; exit 1; }
+done
+
+card_json() { pactl -f json list cards 2>/dev/null; }
+
+# The card that offers both a "Speaker" and a "Headphones" profile. That pair is
+# the signature of this quirk, so no machine-specific card name is needed.
+find_card() {
+  card_json | jq -r --arg want "$CARD" '
+    .[]
+    | select($want == "" or .name == $want)
+    | select(([.profiles | keys[] | test("Speaker")] | any)
+         and ([.profiles | keys[] | test("Headphones")] | any))
+    | .name' | head -n1
+}
+
+# Profile name of one side of the pair: "Speaker" or "Headphones".
+profile_for() {
+  card_json | jq -r --arg c "$1" --arg d "$2" '
+    .[] | select(.name == $c) | .profiles | keys[]
+    | select(test($d; "i"))' | head -n1
+}
+
+active_profile() {
+  card_json | jq -r --arg c "$1" '.[] | select(.name == $c) | .active_profile'
+}
+
+# The ALSA card index, for amixer.
+card_index() {
+  card_json | jq -r --arg c "$1" '.[] | select(.name == $c)
+    | .properties["alsa.card"] // empty'
+}
+
+# True while headphones are plugged in. The jack control is kernel state, so it
+# is valid even when the active profile has no Headphones device at all.
+jack_plugged() {
+  local index="$1" control out
+  for control in 'Headphone Jack' 'Headphone Mic Jack' 'Front Headphone Jack'; do
+    out="$(amixer -c "$index" cget "iface=CARD,name='$control'" 2>/dev/null)" || continue
+    case "$out" in
+      *values=on*)  return 0 ;;
+      *values=off*) return 1 ;;
+    esac
+  done
+  return 1   # no jack detection: keep the speakers, the safe default here
+}
+
+apply() {
+  local card index want
+  card="$(find_card)"
+  [ -n "$card" ] || return 1
+
+  index="$(card_index "$card")"
+  if [ -n "$index" ] && jack_plugged "$index"; then
+    want="$(profile_for "$card" Headphones)"
+  else
+    want="$(profile_for "$card" Speaker)"
+  fi
+  [ -n "$want" ] || return 1
+
+  [ "$(active_profile "$card")" = "$want" ] && return 0
+  if pactl set-card-profile "$card" "$want"; then
+    log "hda-analog-output: $(date +%H:%M:%S) profile -> $want"
+  fi
+}
+
+# Re-apply on every jack event, and once per POLL_SECONDS as a safety net.
+monitor_events() {
+  local line rc
+  while :; do
+    IFS= read -r -t "$POLL_SECONDS" line
+    rc=$?
+    if (( rc == 0 )); then
+      case "$line" in
+        *Jack*) apply || true ;;
+      esac
+    elif (( rc > 128 )); then
+      apply || true
+    else
+      return   # EOF: alsactl monitor exited, let the caller restart it
+    fi
+  done
+}
+
+while :; do
+  apply || true
+  monitor_events < <(stdbuf -oL alsactl monitor 2>/dev/null)
+  sleep 3
+done
