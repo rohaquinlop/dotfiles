@@ -18,6 +18,7 @@ The installer:
 
 - Backs up conflicting files to `~/.dotfiles-backup-<timestamp>/`
 - Stows every user package with `stow --no-folding`
+- Enables the systemd user units the packages ship (currently the audio profile watcher)
 - Installs system files (Vial udev rules, keyd config, Limine `mkinitcpio` wrapper) with `sudo`
 
 niri reloads its configuration automatically after the files change.
@@ -35,7 +36,7 @@ niri reloads its configuration automatically after the files change.
 | `git` | `~/.config/git/` | Git configuration |
 | `gh` | `~/.config/gh/` | GitHub CLI |
 | `herdr` | `~/.config/herdr/` | Herdr terminal workspace manager |
-| `config-misc` | `~/.config/` | fontconfig, GTK bookmarks, mimeapps, chromium flags, imv, obsidian, WirePlumber audio rules |
+| `config-misc` | `~/.config/`, `~/.local/bin/` | fontconfig, GTK bookmarks, mimeapps, chromium flags, imv, obsidian, WirePlumber audio rules, `hda-analog-output` jack watcher |
 | `noctalia` | `~/.config/noctalia/` | Lock screen: flat dark background with the CachyOS mark, compact login box |
 
 `lazygit` is installed but intentionally **not** stowed: its config can contain
@@ -97,10 +98,14 @@ off the last enabled output, so it cannot black out the screen when the monitor
 is unplugged. `niri msg output` changes are temporary: any config reload brings
 the panel back.
 
-Audio does **not** follow the monitor. Plugging HDMI in used to move the default
-sink to the monitor's built-in speakers, so
-`config-misc/.config/wireplumber/wireplumber.conf.d/51-hdmi-sink-priority.conf`
-drops every HDMI sink to `priority.session = 400`:
+### Audio
+
+Audio does **not** follow the monitor, and the laptop speakers stay usable while
+HDMI is plugged in. Two independent things used to pull audio onto the monitor,
+and `config-misc/.config/wireplumber/wireplumber.conf.d/51-analog-output.conf`
+handles both.
+
+**1. The default sink.** Every HDMI sink is dropped to `priority.session = 400`:
 
 | Sink | Priority | When it wins |
 |------|----------|--------------|
@@ -108,8 +113,39 @@ drops every HDMI sink to `priority.session = 400`:
 | Laptop analog | 1000 | fallback — the normal default |
 | HDMI (monitor) | 400 | only if it is the last sink, or picked by hand |
 
-Picking the monitor by hand still works: `wpctl set-default <sink id>`. Check
-what the rule did with `wpctl inspect <sink id> | grep priority.session`.
+Picking the monitor by hand still works: `wpctl set-default <sink id>`. Such a
+pick is stored by WirePlumber and outranks the table above, so when HDMI wins
+ever again, drop the pin first (`wpctl clear-default`) and compare priorities
+with `wpctl inspect <sink id> | grep priority.session`.
+
+**2. The card profile.** The `sof-hda-dsp` UCM exposes the internal speakers and
+the headphone jack as *conflicting* devices, so exactly one of these two
+profiles is active at a time:
+
+| Active profile | Analog output |
+|----------------|---------------|
+| `HiFi (HDMI1, HDMI2, HDMI3, Mic1, Mic2, Speaker)` | internal speakers |
+| `HiFi (HDMI1, HDMI2, HDMI3, Headphones, Mic1, Mic2)` | headphone jack |
+
+Both profiles contain the HDMI outputs, so a plugged monitor also makes the
+Headphones profile count as available — and it wins on priority (10300 against
+10200) even with an empty jack. Its empty-jack device is then disabled, both
+analog playback switches end up off, and the laptop speakers have nothing left
+to play through: no sink selection can bring them back. The service below picks
+the profile from the jack state instead — speakers while the jack is empty,
+headphones while something is plugged in — on the ALSA jack event and re-checked
+every 10 s.
+
+```bash
+systemctl --user status hda-analog-output   # is the jack watcher running
+pactl list cards | grep 'Active Profile'    # which profile is active now
+journalctl --user -u hda-analog-output      # the profile changes it applied
+```
+
+WirePlumber stores the profile this setting applies (`device.restore-profile`),
+so reboots and WirePlumber restarts keep the last choice, and only the jack
+changes it. The `device.profile.priority.rules` list in the same file is the
+fallback for the first seconds of a boot and the written-down intent.
 
 Bluetooth caveat: restarting WirePlumber (`systemctl --user restart
 wireplumber`) while Bluetooth headphones are connected drops their A2DP

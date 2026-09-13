@@ -81,6 +81,17 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
   headphones go mute with no error in any log. Reconnect them afterwards
   (`bluetoothctl disconnect <mac> && bluetoothctl connect <mac>`) or log out —
   this applies whenever the rules in `config-misc/.config/wireplumber/` change.
+- **The internal speakers and the headphone jack are two mutually exclusive UCM
+  profiles.** `sof-hda-dsp` exposes `Speaker` and `Headphones` as *conflicting*
+  devices, and both `HiFi (…)` profiles carry the HDMI outputs. With a monitor
+  plugged in, the empty-jack `Headphones` profile therefore wins on priority,
+  its device is disabled, and every analog output is left muted — the laptop
+  speakers go dead until the monitor is unplugged. `hda-analog-output.service`
+  (`config-misc/.local/bin/hda-analog-output`) picks the profile from the jack
+  state instead. Check with `systemctl --user status hda-analog-output` and
+  `pactl list cards | grep 'Active Profile'`; a forced
+  `pactl set-card-profile <card> 'HiFi (…)'` is corrected again within 10 s.
+  Stopping the service restores the old broken behaviour.
 
 ## Commands
 
@@ -96,6 +107,10 @@ stow -D -t ~ <package-name>
 
 # Dry-run (check for conflicts)
 stow --no-folding -n -v -t ~ <package-name>
+
+# Audio: jack watcher for the analog UCM profile (see Critical Quirks)
+systemctl --user status hda-analog-output
+journalctl --user -u hda-analog-output
 
 # Validate niri config
 niri validate -c niri/.config/niri/config.kdl
