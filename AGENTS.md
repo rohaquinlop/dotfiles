@@ -16,10 +16,15 @@ Stowed packages: `shell alacritty nvim starship btop git gh herdr niri config-mi
 
 Desktop palette: **Akane**, from the Omarchy theme
 `github.com/Grenish/omarchy-akane-theme` — colours and wallpapers only, no
-Omarchy tooling. It lives in three places that must be kept in sync: the Noctalia
-palette JSON (`noctalia/.config/noctalia/palettes/akane.json`), the alacritty
-theme (`alacritty/.config/alacritty/akane.toml`), and the starship + Neovim
-catppuccin overrides. See the README table for the full mapping.
+Omarchy tooling. Almost every app follows Noctalia automatically through
+Noctalia's template engine (`[theme.templates]` in
+`noctalia/.config/noctalia/config.toml`): alacritty, starship, btop, GTK 3/4
+(incl. the Qt palette via `QT_QPA_PLATFORMTHEME=gtk3`), niri, neovim, bat, fzf,
+herdr, micro, pi, fastfetch, PrismLauncher and Chromium. Hand-written copies that
+survive as offline fallbacks: `palettes/akane.json`, `alacritty/akane.toml`,
+`btop/themes/akane.theme`, the starship `[palettes.akane]` table, the catppuccin
+overrides in `nvim/lua/plugins/theme.lua`, the niri focus-ring gradient in
+`cfg/layout.kdl`. See the README table for the full mapping.
 
 Non-stowed files (require `sudo cp`, handled by `install.sh`):
 - `system/udev/rules.d/` → `/etc/udev/rules.d/`
@@ -33,10 +38,40 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
 
 ## Critical Quirks
 
+- **Noctalia can write into the repo through the stow symlinks.** The app
+templates it applies (`noctalia msg templates-apply`, also run by `install.sh`)
+own `~/.config/alacritty/themes/noctalia.toml`, a generated block in
+`~/.config/starship.toml`, the `[theme.custom]` block in
+`herdr/.config/herdr/config.toml` and the include in `alacritty.toml` — the last
+three resolve into this repo, so a palette change leaves a `git diff`. Keep the
+`noctalia` import last in `alacritty.toml` (later imports win; a missing file is
+skipped, which is what makes `akane.toml` the fallback), and keep the
+`include "noctalia.kdl"` last in `niri/config.kdl` for the same reason. Rendering
+the palette outside Noctalia is impossible: `noctalia theme` needs an image or a
+`--theme-json`.
+- **Two templates need a one-time click in the app**: Chromium (`chrome://extensions`
+  → Load unpacked → `~/.cache/noctalia/ungoogled-chromium/theme`) and
+  PrismLauncher (Settings → Application theme → Matugen). lazygit's template is
+  deliberately off: its config is untracked because it can hold credentials.
+- **Neovim picks its colourscheme from the generated `lua/matugen.lua`.**
+  `lua/plugins/theme.lua` checks for that file (written by the community neovim
+  template, outside the repo) and hands LazyVim either a base16 function or the
+  catppuccin name. `RRethy/base16-nvim` has no `colors/base16.vim`, so a
+  `:colorscheme base16` string never works — keep it a function.
 - **The login and lock screen backgrounds are generated, not tracked.**
   `/usr/local/bin/sddm-theme-sync` builds them from the current Noctalia
-  wallpaper; `sddm-theme-sync.path` triggers it on wallpaper changes. Force a
-  rebuild with `sudo sddm-theme-sync` after moving wallpaper files around.
+  wallpaper; `sddm-theme-sync.path` triggers it on wallpaper changes, and the
+  same run regenerates the greeter palette
+  (`/usr/share/sddm/themes/cachyos/NoctaliaColors.qml`) from Noctalia's gtk3
+  template output. Force a rebuild with `sudo sddm-theme-sync` after moving
+  wallpaper files around. The stamp covers the wallpaper and the palette, so a
+  palette change alone still rewrites the scrimmed images. The repo copy of
+  `NoctaliaColors.qml` is the Akane fallback — `Main.qml` reads `bgColor`,
+  `accentColor`, `textColor`, `dangerColor` from it, and a `--test-mode` preview
+  of the *repo* path renders those values. Preview the live palette by pointing
+  test-mode at the installed theme instead. The greeter reads the palette when it
+  starts, so a change appears at the next logout or reboot; restarting
+  `sddm.service` is neither needed nor safe (it ends the session).
 - **Noctalia's `settings.toml` overrides `~/.config/noctalia/*.toml`.** GUI
   changes — including the lock screen widget editor — are written to
   `~/.local/state/noctalia/settings.toml` and win over the stowed config. Delete
@@ -50,8 +85,9 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
   renders any copy in a window, so point it at the repo path. The installed
   greeter only ever reads `/usr/share/sddm/themes/`.
 - **niri auto-reloads its config** when files change. Validate edits with
-  `niri validate -c niri/.config/niri/config.kdl` (includes are resolved
-  relative to the config file).
+  `niri validate` (no `-c`): the deployed config is this repo's file through the
+  stow symlink, and the `noctalia.kdl` include only resolves next to it. Pointing
+  `-c` at the repo path fails — that generated file is not tracked.
 - **Universal copy/paste** (`Super+C/V/X`) uses `wtype` plus terminal detection
   from `niri msg --json focused-window` (see `niri/.config/niri/scripts/`).
   Do not replace it with plain `wl-copy`/`wtype` blindly: terminals need
