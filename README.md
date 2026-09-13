@@ -168,6 +168,19 @@ Three things to know:
 - If DDC picks the wrong bus, pin it per connector:
   `[brightness.monitor."HDMI-A-1"] ddc_bus = 2`.
 
+### Which screen the popups use
+
+Brightness and volume popups, and the notification toasts, are drawn per output.
+Noctalia picks those outputs from a fixed list rather than from where the action
+happened: `[osd] monitors` and `[notification] monitors` take connector names
+(`["HDMI-A-1"]`) or a word from the monitor description. Empty — the current
+setting — means **every** connected monitor, so a brightness change made on the
+monitor also pops up on the laptop panel.
+
+There is no "follow the focused monitor" option, so pinning a connector is the
+only lever. Noctalia falls back to all outputs while that connector is
+unplugged, so a pinned setup still shows popups on the laptop when undocked.
+
 ## How It Works
 
 Each package mirrors the target path under `~`:
