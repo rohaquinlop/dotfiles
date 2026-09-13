@@ -1,9 +1,25 @@
 // ────────────── Output Configuration ──────────────
-// You can run `niri msg outputs` to get the correct name for your displays.
-// You will have to remove "/-" and edit it before it takes effect.
+// Run `niri msg outputs` to get the output names and the exact mode strings.
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Outputs
+//
+// Layout: the MSI MP275Q sits above the laptop, and the laptop is centred
+// under it — 1536 logical px wide against the monitor's 2560, so 512 px of
+// slack on each side. Keybinds: Super+P toggles the laptop panel
+// (scripts/niri-toggle-internal.sh), Super+Shift+P blanks both.
 
-/- output "DP-1" {
-    mode "2560x1440@359.979" // Set resolution and refresh rate
-    scale 1 // No scaling (use 2 for HiDPI)
+// ThinkPad X1 Carbon Gen 9 internal panel. 1920x1200 at scale 1.25 gives
+// 1536x960 logical — the same effective density as the stock CachyOS setup.
+output "eDP-1" {
+    mode "1920x1200@60.003"
+    scale 1.25
+    position x=512 y=1440
+}
+
+// Microstep MSI MP275Q, 27" 1440p over the direct HDMI port. Its preferred
+// mode is 60 Hz, but the panel does 100 Hz and the link carries it, so pin
+// that instead — niri would otherwise pick the preferred 60 Hz.
+output "HDMI-A-1" {
+    mode "2560x1440@99.946"
+    scale 1
+    position x=0 y=0
 }

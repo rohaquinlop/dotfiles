@@ -169,6 +169,11 @@ binds {
     // keyboard shortcut inhibitor, restoring control.
     Mod+ESCAPE allow-inhibiting=false    { toggle-keyboard-shortcuts-inhibit; }
 
+    // ─── Displays ───
+    // Turns the laptop panel off while the external monitor is in use, and back
+    // on again. It keeps quiet if that would leave you with no screen at all.
+    Mod+P                                hotkey-overlay-title="Toggle laptop panel" { spawn "~/.config/niri/scripts/niri-toggle-internal.sh"; }
+
     // ─── Exit / power ───
     Ctrl+Alt+Delete                      { quit; }
     Mod+Shift+P                          { power-off-monitors; }
