@@ -63,3 +63,19 @@ input_radius = 4.0
 background_color = "surface_variant"
 background_opacity = 0.0 # no card: the field floats on the flat background
 background_radius = 0.0
+
+# Brightness. The kernel backlight interface only knows the laptop panel, so the
+# external monitor needs DDC/CI through ddcutil. Without this the brightness keys
+# do nothing while the monitor is focused: "current output has no brightness
+# control". Requires the ddcutil package and the i2c-dev module - see the
+# Displays section of the README.
+[brightness]
+enable_ddcutil = true      # enables discovery only; the backends below decide
+minimum_brightness = 0.05  # keeps a slip of the keys from blacking the screen
+
+[brightness.monitor.eDP-1]
+backend = "backlight"
+backlight_device = "intel_backlight"
+
+[brightness.monitor.HDMI-A-1]
+backend = "ddcutil"

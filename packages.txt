@@ -9,3 +9,4 @@ keyd
 ttf-noto-nerd
 ty
 python-ruff
+ddcutil

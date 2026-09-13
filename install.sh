@@ -93,6 +93,17 @@ install_system_files() {
     log_ok "udev rule: $(basename "$rule")"
   done
 
+  # i2c-dev gives ddcutil its /dev/i2c-* devices, which the external monitor
+  # needs for brightness control (it has no backlight device of its own).
+  if [ -d system/modules-load.d ]; then
+    for conf in system/modules-load.d/*.conf; do
+      [ -f "$conf" ] || continue
+      sudo cp "$conf" "/etc/modules-load.d/$(basename "$conf")"
+      log_ok "modules-load: $(basename "$conf")"
+    done
+    sudo modprobe i2c-dev 2>/dev/null && log_ok "i2c-dev" || log_warn "could not load i2c-dev — reboot to get monitor brightness"
+  fi
+
   if [ -d system/keyd ]; then
     sudo mkdir -p /etc/keyd
     for conf in system/keyd/*.conf; do
