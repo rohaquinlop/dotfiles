@@ -189,9 +189,9 @@ install_system_files() {
       log_warn "could not enable sddm-theme-sync.path"
     fi   # the sync script itself is installed just above, by the local/bin loop
     if sudo /usr/local/bin/sddm-theme-sync; then
-      log_ok "login + lock screen backgrounds"
+      log_ok "login + lock screen backgrounds and greeter colours"
     else
-      log_warn "background sync failed — check that a wallpaper is set in Noctalia"
+      log_warn "theme sync failed — check that a wallpaper is set in Noctalia"
     fi
   fi
 

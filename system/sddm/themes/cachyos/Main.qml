@@ -17,16 +17,20 @@ import SddmComponents 2.0
 Rectangle {
     id: root
 
-    // Colours follow the Akane theme's own lock screen recipe, the variables in
-    // its hyprlock.conf: $color (background) #12101c, $outer_color (field
-    // outline) #e15a48, $font_color (text and dots) #f0c4a8. The field fill is
-    // $inner_color, the same colour as the background, so it stays transparent
-    // here. Failures use the palette's red, plus a faint fill, because the
-    // accent itself is already vermillion.
-    readonly property color bgColor: "#12101c"      // akane $color
-    readonly property color accentColor: "#e15a48"  // akane $outer_color
-    readonly property color textColor: "#f0c4a8"    // akane $font_color
-    readonly property color dangerColor: "#d6453d"  // akane red
+    // Colours come from NoctaliaColors.qml — this repo copy holds the Akane
+    // values (the theme's own lock screen recipe: $color background,
+    // $outer_color outline, $font_color text), and sddm-theme-sync regenerates
+    // the installed copy from Noctalia's active palette, so the login screen
+    // follows the desktop. The field fill is $inner_color, the background
+    // colour, so it stays transparent here. Failures use the palette's red, plus
+    // a faint fill, because the accent itself is already the theme's strongest
+    // colour.
+    NoctaliaColors { id: palette }
+
+    readonly property color bgColor: palette.bgColor
+    readonly property color accentColor: palette.accentColor
+    readonly property color textColor: palette.textColor
+    readonly property color dangerColor: palette.dangerColor
 
     // The layout is designed for 1920x1200. Screen.height is in logical pixels,
     // so on a HiDPI panel SDDM's scale factor cancels out and every element
@@ -164,7 +168,7 @@ Rectangle {
                     // $inner_color in the theme's hyprlock.conf: the background
                     // colour at 80%, which keeps the field readable over the
                     // wallpaper.
-                    color: "#cc12101c"
+                    color: Qt.rgba(root.bgColor.r, root.bgColor.g, root.bgColor.b, 0.8)
                 }
 
                 // Failure tint, stacked on top of that fill rather than replacing
@@ -172,7 +176,7 @@ Rectangle {
                 // the error needs to be clear.
                 Rectangle {
                     anchors.fill: parent
-                    color: "#66d6453d"
+                    color: Qt.rgba(root.dangerColor.r, root.dangerColor.g, root.dangerColor.b, 0.4)
                     visible: root.loginFailed
                 }
 
