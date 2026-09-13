@@ -72,6 +72,10 @@ elif [[ -r /usr/local/opt/fzf/shell/key-bindings.zsh ]]; then
   source /usr/local/opt/fzf/shell/key-bindings.zsh
   source /usr/local/opt/fzf/shell/completion.zsh
 fi
+
+# Noctalia's fzf theme (generated, colour-only, so it is safe to source after
+# the key bindings; absent on machines without Noctalia).
+[[ -r "$HOME/.config/fzf/themes/noctalia.sh" ]] && source "$HOME/.config/fzf/themes/noctalia.sh"
 fi
 
 # ── PATH / environment ──────────────────────────────────────────────

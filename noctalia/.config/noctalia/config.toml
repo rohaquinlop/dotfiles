@@ -14,6 +14,41 @@ source = "custom"
 custom_palette = "akane"
 mode = "dark"
 
+# App theming. Noctalia renders the active palette into the files these templates
+# own and re-runs them on every theme change, so the apps follow the shell
+# instead of being hand-kept copies of the palette.
+#   alacritty  -> ~/.config/alacritty/themes/noctalia.toml
+#   starship   -> generated [palettes.noctalia] block in ~/.config/starship.toml
+#   gtk3/gtk4  -> ~/.config/gtk-{3,4}.0/noctalia.css, imported by the tracked gtk.css
+#   niri       -> ~/.config/niri/noctalia.kdl (focus ring + border colours)
+#   btop       -> ~/.config/btop/themes/noctalia.theme
+# Opt-in per id: `noctalia theme --list-templates` lists the rest (qt, kitty,
+# ghostty, ...). Apply by hand with `noctalia msg templates-apply`.
+[theme.templates]
+enable_builtin_templates = true
+builtin_ids = ["alacritty", "starship", "btop", "gtk3", "gtk4", "niri"]
+
+# Community templates (cached in ~/.local/state/noctalia/community-templates/,
+# fetched from api.noctalia.dev on first use). Every id below writes outside the
+# repo except herdr, whose hook rewrites the tracked [theme.custom] block.
+# Two need a one-time click in the app: Chromium (chrome://extensions -> Load
+# unpacked -> ~/.cache/noctalia/ungoogled-chromium/theme) and PrismLauncher
+# (Settings -> Application theme -> Matugen).
+# lazygit is deliberately absent: its config is not tracked because it can hold
+# credentials, and the hook rewrites that file.
+enable_community_templates = true
+community_ids = [
+  "bat",
+  "fastfetch",
+  "fzf",
+  "herdr",
+  "micro",
+  "neovim",
+  "pi-agent",
+  "prismlauncher",
+  "ungoogled-chromium",
+]
+
 # Lock screen: same look as the SDDM login screen (system/sddm/themes/cachyos).
 # No blurred desktop capture, no blur, no tint: just the flat Catppuccin base
 # colour, the CachyOS wordmark, and a slim password row.

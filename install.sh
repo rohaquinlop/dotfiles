@@ -65,6 +65,28 @@ stow_packages() {
   fi
 }
 
+# Noctalia renders the palette into the apps (see [theme.templates] in
+# noctalia/.config/noctalia/config.toml). On a fresh install the daemon is not
+# running yet, so a niri config that includes the generated noctalia.kdl would
+# fail to load: niri runs on its built-in defaults, keybinds and all. An empty
+# file is valid KDL, so niri starts on the Akane fallback in cfg/layout.kdl and
+# the shell fills the file in at login.
+apply_app_templates() {
+  log_info "Rendering Noctalia app templates..."
+
+  if [ ! -e "$HOME/.config/niri/noctalia.kdl" ]; then
+    mkdir -p "$HOME/.config/niri"
+    : >"$HOME/.config/niri/noctalia.kdl"
+    log_warn "wrote an empty ~/.config/niri/noctalia.kdl (niri include fallback)"
+  fi
+
+  if command -v noctalia >/dev/null 2>&1 && noctalia msg templates-apply >/dev/null 2>&1; then
+    log_ok "app templates applied"
+  else
+    log_warn "noctalia is not running — run 'noctalia msg templates-apply' after login"
+  fi
+}
+
 # Stow only links the units a package ships under ~/.config/systemd/user; they
 # still have to be enabled, and restarted so an updated unit or script is used.
 enable_user_services() {
@@ -192,6 +214,8 @@ main() {
   fi
 
   stow_packages
+  echo ""
+  apply_app_templates
   echo ""
   enable_user_services
   echo ""
