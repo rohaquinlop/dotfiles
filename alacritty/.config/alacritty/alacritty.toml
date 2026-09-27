@@ -52,6 +52,9 @@ bindings = [
 { key = "Return", mods = "Shift", chars = "\u001B[13;2u" },
 # Legacy encoding sends Alt+Shift+Return the same as Alt+Return; send CSI-u so tmux can match M-S-Enter.
 { key = "Return", mods = "Alt|Shift", chars = "\u001B[13;4u" },
+# macOS: Command is not forwarded to the terminal, so map Cmd+Left/Right to Home/End (line start/end).
+{ key = "Left", mods = "Command", chars = "\u001B[H" },
+{ key = "Right", mods = "Command", chars = "\u001B[F" },
 # Persistent font size. Writes to ~/.config/alacritty/local.toml, which
 # Alacritty watches, so the new size survives a restart. The built-in
 # Increase/DecreaseFontSize actions are transient and are lost on exit.
