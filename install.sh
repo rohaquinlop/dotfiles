@@ -65,6 +65,15 @@ stow_packages() {
   fi
 }
 
+# alacritty.toml imports ~/.config/alacritty/font.toml; point it at this OS's
+# font file (Noto Sans Mono on Linux, JetBrainsMono Nerd Font on macOS).
+link_alacritty_font() {
+  local os=linux
+  [ "$(uname -s)" = Darwin ] && os=macos
+  ln -sfn "fonts/$os.toml" "$HOME/.config/alacritty/font.toml"
+  log_ok "alacritty font: fonts/$os.toml"
+}
+
 # Noctalia renders the palette into the apps (see [theme.templates] in
 # noctalia/.config/noctalia/config.toml). On a fresh install the daemon is not
 # running yet, so a niri config that includes the generated noctalia.kdl would
@@ -214,6 +223,7 @@ main() {
   fi
 
   stow_packages
+  link_alacritty_font
   echo ""
   apply_app_templates
   echo ""
