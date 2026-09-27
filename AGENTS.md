@@ -18,13 +18,13 @@ Desktop palette: **Akane**, from the Omarchy theme
 `github.com/Grenish/omarchy-akane-theme` — colours and wallpapers only, no
 Omarchy tooling. Almost every app follows Noctalia automatically through
 Noctalia's template engine (`[theme.templates]` in
-`noctalia/.config/noctalia/config.toml`): alacritty, starship, btop, GTK 3/4
+`noctalia/.config/noctalia/config.toml`): btop, GTK 3/4
 (incl. the Qt palette via `QT_QPA_PLATFORMTHEME=gtk3`), niri, neovim, bat, fzf,
-herdr, micro, pi, fastfetch, PrismLauncher and Chromium. Hand-written copies that
-survive as offline fallbacks: `palettes/akane.json`, `alacritty/akane.toml`,
-`btop/themes/akane.theme`, the starship `[palettes.akane]` table, the catppuccin
-overrides in `nvim/lua/plugins/theme.lua`, the niri focus-ring gradient in
-`cfg/layout.kdl`. See the README table for the full mapping.
+herdr, micro, pi, fastfetch, PrismLauncher and Chromium. Alacritty and starship
+are excluded on purpose and stay on Catppuccin Mocha. Hand-written copies that
+survive as offline fallbacks: `palettes/akane.json`, `btop/themes/akane.theme`,
+the niri focus-ring gradient in `cfg/layout.kdl`. See the README table for the
+full mapping.
 
 Non-stowed files (require `sudo cp`, handled by `install.sh`):
 - `system/udev/rules.d/` → `/etc/udev/rules.d/`
@@ -40,13 +40,11 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
 
 - **Noctalia can write into the repo through the stow symlinks.** The app
 templates it applies (`noctalia msg templates-apply`, also run by `install.sh`)
-own `~/.config/alacritty/themes/noctalia.toml`, a generated block in
-`~/.config/starship.toml`, the `[theme.custom]` block in
-`herdr/.config/herdr/config.toml` and the include in `alacritty.toml` — the last
-three resolve into this repo, so a palette change leaves a `git diff`. Keep the
-`noctalia` import last in `alacritty.toml` (later imports win; a missing file is
-skipped, which is what makes `akane.toml` the fallback), and keep the
-`include "noctalia.kdl"` last in `niri/config.kdl` for the same reason. Rendering
+own the `[theme.custom]` block in `herdr/.config/herdr/config.toml`, which
+resolves into this repo, so a palette change leaves a `git diff`. Keep the
+`include "noctalia.kdl"` last in `niri/config.kdl` (later includes win).
+Alacritty and starship are deliberately not themed by Noctalia: keep their
+templates out of `builtin_ids`. Rendering
 the palette outside Noctalia is impossible: `noctalia theme` needs an image or a
 `--theme-json`.
 - **Two templates need a one-time click in the app**: Chromium (`chrome://extensions`
@@ -98,7 +96,10 @@ the palette outside Noctalia is impossible: `noctalia theme` needs an image or a
   `stow` does not clean those up. Check with `find ~/.config -xtype l` and remove
   the ones pointing into this repo. (Chromium/Firefox `SingletonLock`-style
   broken links are normal runtime files.)
-- **Terminal font is Noto Sans Mono** on both machines. On Linux, fontconfig
+- **Terminal font is per OS.** Do not put `[font]` in `alacritty.toml`: the
+  importing file wins over its imports, so it would override the per-OS file.
+  `install.sh` links `~/.config/alacritty/font.toml` to `fonts/linux.toml`
+  (Noto Sans Mono) or `fonts/macos.toml` (JetBrainsMono Nerd Font). On Linux, fontconfig
   redirects the family to the patched `NotoSansM Nerd Font Mono`
   (`ttf-noto-nerd`) via
   `config-misc/.config/fontconfig/conf.d/50-noto-nerd.conf`. Plain Noto Sans
@@ -106,7 +107,7 @@ the palette outside Noctalia is impossible: `noctalia theme` needs an image or a
   do not remove that rule or the package. Alacritty only draws the powerline
   triangles (U+E0B0-E0B3) itself; the round caps (U+E0B4/E0B6) come from the
   font and are one pixel shorter than alacritty's cell, hence
-  `font.offset.y = -2` + `font.glyph_offset.y = -1` in `alacritty.toml`
+  `font.offset.y = -2` + `font.glyph_offset.y = -1` in `fonts/linux.toml`
   (tuned for the default font size).
 - The `system/local/bin/mkinitcpio` wrapper is a safety net for manual
   `mkinitcpio -P` runs; it calls the CachyOS-native `limine-mkinitcpio`.
