@@ -160,6 +160,9 @@ niri validate -c niri/.config/niri/config.kdl
 
 # Preview the SDDM login theme without rebooting
 sddm-greeter-qt6 --test-mode --theme system/sddm/themes/cachyos
+
+# Validate the login/lock screen palette chain (read-only, no sudo needed)
+sddm-theme-sync --check
 ```
 
 ## Adding a New Package

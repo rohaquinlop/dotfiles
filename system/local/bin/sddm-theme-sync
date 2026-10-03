@@ -17,12 +17,22 @@
 #
 #   sudo sddm-theme-sync
 #
+# Validate the chain without changing anything (read-only, no root needed).
+# It reports the active palette, then checks that the greeter palette and both
+# backgrounds follow it. Exit status 0 means the lock screen and the login
+# screen carry the selected theme:
+#
+#   sddm-theme-sync --check
+#
 # Overrides (used by the tests, and handy on another machine):
 #   TARGET_HOME  user whose Noctalia state and home directory to use
 #   THEME_DIR    where to write the greeter background and palette
 #   STATE_DIR    where to write the lock screen background
 #   SCRIM        darkening over the wallpaper, default 55%
 set -euo pipefail
+
+check=false
+[ "${1:-}" = "--check" ] && check=true
 
 target_home="${TARGET_HOME:-/home/rohaquinlop}"
 theme_dir="${THEME_DIR:-/usr/share/sddm/themes/cachyos}"
@@ -35,7 +45,6 @@ greeter_bg="$theme_dir/background.jpg"
 wordmark="$theme_dir/wordmark.png"
 stamp="$state_dir/.sddm-theme-sync.stamp"
 
-command -v magick >/dev/null || { echo "imagemagick is required" >&2; exit 1; }
 [ -f "$settings" ] || { echo "no Noctalia settings at $settings" >&2; exit 1; }
 
 # Wallpaper: the persisted default, else whatever Noctalia is showing now.
@@ -61,8 +70,9 @@ if [ -r "$palette_css" ]; then
   # Noctalia persists the palette to settings.toml (this unit's trigger) and only
   # writes noctalia.css about a tenth of a second later, so wait briefly for the
   # CSS to catch up: reading the old file would put the greeter one palette
-  # change behind, and the stamp would then hide the lag.
-  if [ "$palette_css" -ot "$settings" ]; then
+  # change behind, and the stamp would then hide the lag. The check mode does
+  # not wait: it is read-only and must not slow down.
+  if [ "$check" != true ] && [ "$palette_css" -ot "$settings" ]; then
     for _ in $(seq 1 20); do
       sleep 0.25
       [ "$palette_css" -nt "$settings" ] && break
@@ -81,6 +91,102 @@ if [ -r "$palette_css" ]; then
   value="$(css_color destructive_bg_color || true)"
   [ -n "$value" ] && danger_color="$value"
 fi
+
+# Nothing to do when both outputs are already built from this wallpaper and
+# palette. The palette is part of the stamp, so colours change without a new
+# wallpaper still rebuild the scrimmed backgrounds.
+source_stamp="$(stat -c '%n %Y %s' "$wallpaper") bg=$bg_color scrim=$scrim"
+
+# Read-only validation of the chain: the greeter palette must carry the active
+# palette's four colours, and both backgrounds must be built from the current
+# wallpaper and palette. For a custom palette the four colours are also checked
+# against the palette file itself. The lock screen widgets read the live palette
+# at render time, so a passing chain means the lock screen shows the theme.
+if [ "$check" = true ]; then
+  fail=0
+
+  theme_field() {
+    awk -F' = ' -v key="$1" '
+      /^\[theme\]$/ { in_theme = 1; next }
+      /^\[/ { in_theme = 0 }
+      in_theme && $1 == key { gsub(/"/, "", $2); print $2; exit }
+    ' "$settings"
+  }
+  qml_color() {
+    sed -n "s/.*property color $1: \"\(#[0-9a-fA-F]\{6\}\)\".*$/\1/p" "$colors_qml" | head -1
+  }
+
+  theme_source="$(theme_field source)"
+  case "$theme_source" in
+    custom)    theme_name="$(theme_field custom_palette)" ;;
+    builtin)   theme_name="$(theme_field builtin)" ;;
+    community) theme_name="$(theme_field community_palette)" ;;
+    wallpaper) theme_name="$(theme_field wallpaper_scheme)" ;;
+    *)         theme_name="" ;;
+  esac
+  echo "theme: ${theme_source:-unknown}${theme_name:+ $theme_name}"
+  echo "palette: bg $bg_color, accent $accent_color, text $text_color, danger $danger_color"
+
+  # A custom palette is a plain JSON file, so its four colours can be checked
+  # against noctalia.css. A built-in or wallpaper palette is resolved inside
+  # Noctalia and has no file to compare: the CSS is the reference there.
+  if [ "$theme_source" = "custom" ]; then
+    palette_json="$target_home/.config/noctalia/palettes/${theme_name}.json"
+    if [ ! -f "$palette_json" ]; then
+      echo "FAIL: no palette file at $palette_json"
+      fail=1
+    else
+      json_color() {
+        sed -n "s/.*\"$1\": \"\(#[0-9a-fA-F]\{6\}\)\".*$/\1/p" "$palette_json" | head -1
+      }
+      for pair in "mSurface:$bg_color" "mPrimary:$accent_color" \
+                  "mOnSurface:$text_color" "mError:$danger_color"; do
+        name="${pair%%:*}"
+        want="${pair#*:}"
+        got="$(json_color "$name")"
+        if [ "$got" = "$want" ]; then
+          echo "ok: noctalia.css $name $got"
+        else
+          echo "FAIL: noctalia.css $name is ${got:-missing}, expected $want (run: noctalia msg templates-apply)"
+          fail=1
+        fi
+      done
+    fi
+  else
+    echo "note: $theme_source palette has no file to compare; noctalia.css is the reference"
+  fi
+
+  if [ ! -f "$colors_qml" ]; then
+    echo "FAIL: no greeter palette at $colors_qml (run: sudo sddm-theme-sync)"
+    fail=1
+  else
+    for pair in "bgColor:$bg_color" "accentColor:$accent_color" \
+                "textColor:$text_color" "dangerColor:$danger_color"; do
+      name="${pair%%:*}"
+      want="${pair#*:}"
+      got="$(qml_color "$name")"
+      if [ "$got" = "$want" ]; then
+        echo "ok: greeter palette $name $got"
+      else
+        echo "FAIL: greeter palette $name is ${got:-missing}, expected $want (run: sudo sddm-theme-sync)"
+        fail=1
+      fi
+    done
+  fi
+
+  if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$source_stamp" ] &&
+     [ -f "$greeter_bg" ] && [ -f "$lock_bg" ]; then
+    echo "ok: backgrounds are built from the current wallpaper and palette"
+  else
+    echo "FAIL: backgrounds are stale (run: sudo sddm-theme-sync)"
+    fail=1
+  fi
+
+  [ "$fail" = 0 ] && echo "lock screen and login screen follow the active theme"
+  exit "$fail"
+fi
+
+command -v magick >/dev/null || { echo "imagemagick is required" >&2; exit 1; }
 
 mkdir -p "$theme_dir" "$state_dir"
 
@@ -116,10 +222,6 @@ if [ -r "$palette_css" ] || [ ! -f "$colors_qml" ]; then
   write_greeter_palette
 fi
 
-# Nothing to do when both outputs are already built from this wallpaper and
-# palette. The palette is part of the stamp, so colours change without a new
-# wallpaper still rebuild the scrimmed backgrounds.
-source_stamp="$(stat -c '%n %Y %s' "$wallpaper") bg=$bg_color scrim=$scrim"
 if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$source_stamp" ] &&
    [ -f "$greeter_bg" ] && [ -f "$lock_bg" ]; then
   exit 0

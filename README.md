@@ -388,6 +388,7 @@ One root-owned script builds both from the current Noctalia wallpaper:
 
 ```bash
 sudo sddm-theme-sync     # force a rebuild by hand
+sddm-theme-sync --check  # validate the chain (read-only, no sudo)
 ```
 
 | Output | Consumer |
@@ -408,6 +409,13 @@ Noctalia's built-in `gtk3` template: it names `accent_color` (primary),
 on every palette change. The scrim that darkens the wallpaper uses the same
 surface colour, so both screens keep the theme's cast. `NoctaliaColors.qml` is
 only rewritten when a colour actually changes.
+
+`--check` validates the chain without changing anything. It prints the active
+palette, checks `NoctaliaColors.qml` against it, and checks that both images are
+built from the current wallpaper and palette. For a custom palette it also
+checks `noctalia.css` against the palette JSON. Exit status 0 means the lock
+screen and the login screen carry the selected theme. The lock screen widgets
+read the live palette at render time, so the chain is the whole story.
 
 Neither the images nor the generated `NoctaliaColors.qml` are tracked in git:
 they change with the wallpaper and the palette, and tracking them would leave the
