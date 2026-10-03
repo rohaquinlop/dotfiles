@@ -7,10 +7,16 @@ normal = { family = "Noto Sans Mono" }
 bold = { family = "Noto Sans Mono" }
 italic = { family = "Noto Sans Mono" }
 
-# Alacritty's cell is taller than the font's powerline glyphs, so the round
-# caps (U+E0B4/E0B6, which alacritty does not draw itself like the E0B0-E0B3
-# triangles) leave a 1px notch at the top and bottom. Removing the extra cell
-# padding and nudging the glyphs down makes them line up exactly. Tuned for
-# the default font size; a much larger size may need re-tuning.
-offset = { y = -2 }
-glyph_offset = { y = -1 }
+# The powerline round caps (U+E0B4/E0B6) are a hair taller than the cell
+# Alacritty builds with the default spacing, so the caps stick out below the
+# coloured segment and the bottom corner of a prompt pill looks wrong.
+#
+# The matching offset/glyph_offset depend on the font size and the output
+# scale. alacritty-font-size computes them from this font's metrics and writes
+# them into ~/.config/alacritty/local.toml, which is imported last and wins
+# over this file. The values below are only the fallback for the default font
+# size (11.25) at scale 1.25. Run "alacritty-font-size sync" to recompute them.
+# The ratios in that script come from this font: do not change the family
+# without retuning them.
+offset = { y = -1 }
+glyph_offset = { y = 0 }
