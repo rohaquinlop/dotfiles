@@ -106,9 +106,15 @@ the palette outside Noctalia is impossible: `noctalia theme` needs an image or a
   Mono plus alacritty's per-glyph fallback mis-renders the powerline caps, so
   do not remove that rule or the package. Alacritty only draws the powerline
   triangles (U+E0B0-E0B3) itself; the round caps (U+E0B4/E0B6) come from the
-  font and are one pixel shorter than alacritty's cell, hence
-  `font.offset.y = -2` + `font.glyph_offset.y = -1` in `fonts/linux.toml`
-  (tuned for the default font size).
+  font and are a hair taller than the cell Alacritty builds, so the caps stick
+  out of a prompt pill unless `font.offset.y` matches the cell to the cap
+  height. Both offsets depend on the font size and the output scale, so
+  `alacritty-font-size` computes them from the ttf-noto-nerd metrics and
+  writes them into `~/.config/alacritty/local.toml` (imported last, so it wins
+  over `fonts/linux.toml`). `alacritty-launch` runs `alacritty-font-size
+  sync` before every terminal start, and the size keybinds recompute on every
+  press. After changing the display scale by hand, run `alacritty-font-size
+  sync`.
 - The `system/local/bin/mkinitcpio` wrapper is a safety net for manual
   `mkinitcpio -P` runs; it calls the CachyOS-native `limine-mkinitcpio`.
 - The CachyOS niri defaults live in `~/.config/niri/` and are tracked here after
