@@ -1,6 +1,5 @@
 general.import = [
   # Catppuccin Mocha. Not akane.toml or Noctalia's generated
-  # themes/noctalia.toml: both carry the Akane palette.
   "~/.config/alacritty/theme.toml",
   # Per-OS font. install.sh links it to fonts/linux.toml or fonts/macos.toml.
   # Fonts cannot live in this file: the importing file wins over its imports.
