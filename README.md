@@ -384,7 +384,10 @@ does not own still need their own switch: set btop's `color_theme`, drop the
 
 The greeter cannot read your home directory (mode 700), and Noctalia's lock
 screen has no widget for the mark, so both screens use a pre-rendered image.
-One root-owned script builds both from the current Noctalia wallpaper:
+One root-owned script builds both from the current Noctalia wallpaper. The mark
+is baked 33px above the image centre (the 1920x1200 design size), where the
+greeter draws its own mark, so the lock screen widgets can use the greeter's
+input row position and both screens line up:
 
 ```bash
 sudo sddm-theme-sync     # force a rebuild by hand

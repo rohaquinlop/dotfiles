@@ -45,6 +45,11 @@ greeter_bg="$theme_dir/background.jpg"
 wordmark="$theme_dir/wordmark.png"
 stamp="$state_dir/.sddm-theme-sync.stamp"
 
+# Vertical offset of the baked mark from the image centre, at the 1920x1200
+# design size (see the composite below). It is part of the stamp, so changing it
+# here forces one rebuild of both backgrounds.
+mark_offset="-33"
+
 [ -f "$settings" ] || { echo "no Noctalia settings at $settings" >&2; exit 1; }
 
 # Wallpaper: the persisted default, else whatever Noctalia is showing now.
@@ -95,7 +100,7 @@ fi
 # Nothing to do when both outputs are already built from this wallpaper and
 # palette. The palette is part of the stamp, so colours change without a new
 # wallpaper still rebuild the scrimmed backgrounds.
-source_stamp="$(stat -c '%n %Y %s' "$wallpaper") bg=$bg_color scrim=$scrim"
+source_stamp="$(stat -c '%n %Y %s' "$wallpaper") bg=$bg_color scrim=$scrim mark=$mark_offset"
 
 # Read-only validation of the chain: the greeter palette must carry the active
 # palette's four colours, and both backgrounds must be built from the current
@@ -232,7 +237,12 @@ magick "$wallpaper" -resize 1920x1200^ -gravity center -extent 1920x1200 \
   -fill "$bg_color" -colorize "$scrim" -quality 90 -strip "$greeter_bg"
 
 if [ -f "$wordmark" ]; then
-  magick "$greeter_bg" "$wordmark" -gravity center -composite -quality 90 -strip "$lock_bg"
+  # The greeter draws the mark inside a centred column (mark, 26px gap, input
+  # row at the 1920x1200 design size), so its mark centre sits at y 567, not at
+  # the image centre. Bake the mark at the same spot: the lock screen widgets
+  # can then use the greeter's own row position and both screens line up.
+  magick "$greeter_bg" "$wordmark" -gravity center -geometry "+0$mark_offset" \
+    -composite -quality 90 -strip "$lock_bg"
 else
   cp "$greeter_bg" "$lock_bg" # mark missing: still keep the wallpaper in sync
 fi
