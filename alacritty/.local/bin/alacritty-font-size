@@ -1,9 +1,23 @@
 #!/bin/sh
-# Adjust the machine-local Alacritty font size and persist it.
-# Alacritty watches its imported config files, so the change applies live.
+# Adjust the machine-local Alacritty font settings and persist them.
+#
+# Writes ~/.config/alacritty/local.toml. alacritty.toml imports that file last,
+# and Alacritty watches it, so changes apply live and survive a restart:
+#
+#   size           font size (Ctrl+Shift+= / - / 0, or a number argument)
+#   offset.y       keeps the cell height in step with the powerline round caps
+#                  (U+E0B4/U+E0B6), so the caps do not stick out of a prompt
+#                  pill or leave a notch in it
+#   glyph_offset.y keeps the caps sitting on the cell floor
+#
+# Both offsets depend on the font size and on the output scale, so every run
+# recomputes them. Use "sync" to recompute without changing the font size; run
+# it after changing the display scale (the alacritty-launch wrapper does it on
+# every terminal start).
 set -eu
 
-DEFAULT_SIZE=11
+# Alacritty's built-in default for font.size.
+DEFAULT_SIZE=11.25
 MIN_SIZE=6
 MAX_SIZE=48
 
@@ -16,15 +30,52 @@ if [ -f "$conf" ]; then
 fi
 
 case "${1:-}" in
+  sync)    target=$current ;;
   up|+*)   target=$(awk -v c="$current" 'BEGIN{printf "%g", c+1}') ;;
   down|-*) target=$(awk -v c="$current" 'BEGIN{printf "%g", c-1}') ;;
   reset)   target=$DEFAULT_SIZE ;;
-  ''|*[!0-9.]*) echo "usage: ${0##*/} up|down|reset|<size>" >&2; exit 2 ;;
+  ''|*[!0-9.]*) echo "usage: ${0##*/} up|down|reset|<size>|sync" >&2; exit 2 ;;
   *)       target=$1 ;;
 esac
 
 target=$(awk -v t="$target" -v lo="$MIN_SIZE" -v hi="$MAX_SIZE" \
   'BEGIN{if(t<lo)t=lo; if(t>hi)t=hi; printf "%g", t}')
+
+# Scale of the compositor output the next window will use. ALACRITTY_SCALE
+# wins; otherwise the output of the focused workspace; otherwise the first
+# output. Falls back to 1 when niri or jq is unavailable.
+scale=1
+if [ -n "${ALACRITTY_SCALE:-}" ]; then
+  scale=$ALACRITTY_SCALE
+elif command -v niri >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  focused_output=$(niri msg --json workspaces 2>/dev/null \
+    | jq -r '[.[] | select(.is_focused) | .output][0] // empty' 2>/dev/null || true)
+  detected=$(niri msg --json outputs 2>/dev/null \
+    | jq -r --arg out "$focused_output" \
+        '[.[] | select($out == "" or .name == $out) | .logical.scale][0] // empty' \
+      2>/dev/null || true)
+  [ -n "${detected:-}" ] && scale=$detected
+fi
+
+offset_y=0
+if [ "$(uname -s)" = Linux ]; then
+  # Powerline cap alignment for NotoSansM Nerd Font Mono (ttf-noto-nerd). If
+  # fonts/linux.toml ever switches font, these ratios change with it:
+  #   em   font size in pixels: points * scale * 96/72
+  #   cell cell height Alacritty builds: ceil(ascent) + ceil(descent) in em
+  #   caps height of U+E0B4/U+E0B6 in the font, in em
+  # Alacritty draws the caps bottom-aligned in the cell, so the cell must be
+  # the caps' height rounded to whole pixels.
+  offset_y=$(awk -v size="$target" -v scale="$scale" '
+    function ceil(x) { x = x - 1e-9; i = int(x); return (x > i) ? i + 1 : i }
+    BEGIN {
+      em = size * scale * 96 / 72
+      cell = ceil(1.069 * em) + ceil(0.293 * em)
+      caps = 1.376 * em
+      printf "%d", int(caps + 0.5) - cell
+    }
+  ')
+fi
 
 mkdir -p "${conf%/*}"
 tmp="$conf.tmp.$$"
@@ -34,7 +85,9 @@ tmp="$conf.tmp.$$"
   echo
   echo "[font]"
   echo "size = $target"
+  echo "offset = { x = 0, y = $offset_y }"
+  echo "glyph_offset = { x = 0, y = 0 }"
 } > "$tmp"
 mv "$tmp" "$conf"
 
-echo "font size: $target"
+echo "font size: $target (scale $scale, offset.y $offset_y)"

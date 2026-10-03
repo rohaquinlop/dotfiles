@@ -2,3 +2,6 @@
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 
     spawn-at-startup "noctalia"
+    // Generate the Alacritty powerline cap alignment for the current output
+    // scale into local.toml. alacritty-launch keeps it fresh afterwards.
+    spawn-at-startup "~/.local/bin/alacritty-font-size" "sync"

@@ -67,11 +67,30 @@ stow_packages() {
 
 # alacritty.toml imports ~/.config/alacritty/font.toml; point it at this OS's
 # font file (Noto Sans Mono on Linux, JetBrainsMono Nerd Font on macOS).
-link_alacritty_font() {
+# The import is optional in alacritty, so a missing link fails silently and
+# the terminal falls back to "monospace" (plain Noto Sans Mono, no Nerd Font
+# glyphs). Verify the stow-deployed target before linking, and fail loudly.
+# Then generate the powerline cap alignment for the current font size and
+# output scale into ~/.config/alacritty/local.toml.
+setup_alacritty_font() {
   local os=linux
   [ "$(uname -s)" = Darwin ] && os=macos
+  local target="$HOME/.config/alacritty/fonts/$os.toml"
+
+  if [ ! -e "$target" ]; then
+    log_error "alacritty font: $target not found"
+    echo "  stow --no-folding -t ~ alacritty"
+    return 1
+  fi
+
   ln -sfn "fonts/$os.toml" "$HOME/.config/alacritty/font.toml"
   log_ok "alacritty font: fonts/$os.toml"
+
+  if "$HOME/.local/bin/alacritty-font-size" sync >/dev/null; then
+    log_ok "alacritty font alignment: local.toml"
+  else
+    log_warn "could not sync alacritty font alignment"
+  fi
 }
 
 # Noctalia renders the palette into the apps (see [theme.templates] in
@@ -223,7 +242,7 @@ main() {
   fi
 
   stow_packages
-  link_alacritty_font
+  setup_alacritty_font
   echo ""
   apply_app_templates
   echo ""

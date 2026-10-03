@@ -1,0 +1,11 @@
+#!/bin/sh
+# Launch Alacritty with the machine-local font settings up to date.
+#
+# The powerline cap alignment in local.toml depends on the output scale, which
+# changes when a monitor is plugged in or the scale is changed, so refresh it
+# before every window. Alacritty watches local.toml, so windows that are
+# already open pick the new values up too.
+set -u
+
+"$(dirname "$0")/alacritty-font-size" sync >/dev/null 2>&1 || true
+exec alacritty "$@"
