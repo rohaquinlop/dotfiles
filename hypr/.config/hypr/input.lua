@@ -8,6 +8,6 @@
 hl.config({
   input = {
     kb_options = "caps:backspace",
-    natural_scroll = false
+    natural_scroll = true
   },
 })
