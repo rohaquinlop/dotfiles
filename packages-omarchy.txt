@@ -6,3 +6,4 @@ zsh-syntax-highlighting
 zsh-history-substring-search
 ttf-noto-nerd
 jq
+keyd

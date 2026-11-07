@@ -39,8 +39,8 @@ survive as offline fallbacks: `palettes/akane.json`, `btop/themes/akane.theme`,
 the niri focus-ring gradient in `cfg/layout.kdl`. See the README table for the
 full mapping.
 
-Non-stowed files (require `sudo cp`, handled by `install.sh`; skipped on
-Omarchy, which manages them itself):
+Non-stowed files (require `sudo cp`, handled by `install.sh`). On Omarchy only
+`system/keyd/` is installed; the rest is skipped because Omarchy manages it:
 - `system/udev/rules.d/` → `/etc/udev/rules.d/`
 - `system/modules-load.d/` → `/etc/modules-load.d/` (loads `i2c-dev`, for
   monitor brightness — see the README)
@@ -52,12 +52,12 @@ Omarchy, which manages them itself):
 
 ## Critical Quirks
 
-- **Caps Lock is Backspace on Omarchy, through Hyprland, not keyd.**
-  `hypr/.config/hypr/input.lua` sets `kb_options = "caps:backspace"`, which
-  replaces Omarchy's `compose:caps` default. `system/keyd/default.conf` holds
-  the same mapping for the CachyOS machine; `install.sh` does not install it on
-  Omarchy. A side effect: Caps Lock compose sequences (fcitx5 + `~/.XCompose`)
-  stop working on the Omarchy machine.
+- **Caps Lock is Backspace through keyd.** `system/keyd/default.conf` maps it
+  below the compositor, so the TTY and the desktop share one mapping.
+  `install.sh` copies it to `/etc/keyd/` and enables `keyd.service` on both
+  machines. `hypr/.config/hypr/input.lua` keeps `caps:backspace` as a Hyprland
+  fallback for when keyd is stopped. Caps Lock compose sequences (fcitx5 +
+  `~/.XCompose`) stop working.
 - **`omazed` writes the Zed `theme` key through the stow symlink.** A theme
   change can therefore appear as a `git diff` in
   `zed/.config/zed/settings.json`. Keep `"theme": "Omazed"` so the sync keeps
@@ -183,11 +183,13 @@ stow --no-folding -n -v -t ~ <package-name>
 systemctl --user status hda-analog-output
 journalctl --user -u hda-analog-output
 
-# Omarchy: install packages, set the login shell, stow, apply the input override
+# Omarchy: install packages, set the login shell, stow and install keyd
 sudo pacman -S --needed $(tr '\n' ' ' < packages-omarchy.txt)
 chsh -s /usr/bin/zsh
 ./install.sh
-hyprctl reload && hyprctl getoption input:kb_options
+systemctl status keyd
+keyd check
+hyprctl getoption input:kb_options
 
 # Validate niri config
 niri validate -c niri/.config/niri/config.kdl

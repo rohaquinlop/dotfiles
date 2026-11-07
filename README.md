@@ -33,16 +33,17 @@ chsh -s /usr/bin/zsh
 ```
 
 The installer backs up conflicting files, stows the six packages, links the
-alacritty font and reloads Hyprland. Only the package step and `chsh` ask for
-your password; the rest runs as the user.
+alacritty font, installs the keyd config, enables `keyd.service` and reloads
+Hyprland. The package step, `chsh` and the keyd step ask for your password.
 
 ### Caps Lock → Backspace
 
-`hypr/.config/hypr/input.lua` sets `kb_options = "caps:backspace"`, replacing
-Omarchy's `compose:caps` default. It is Hyprland-only and needs no daemon, so
-no TTY remap. `system/keyd/default.conf` keeps the same mapping for the
-CachyOS machine. Caps Lock compose sequences stop working on Omarchy as a
-result.
+`system/keyd/default.conf` maps Caps Lock to Backspace below the compositor.
+The desktop and the TTY then share one mapping. `install.sh` copies the file to
+`/etc/keyd/` and enables `keyd.service`. `hypr/.config/hypr/input.lua` keeps
+`kb_options = "caps:backspace"` as a Hyprland fallback for when keyd is
+stopped. It replaces Omarchy's `compose:caps` default. Caps Lock compose
+sequences stop working as a result.
 
 ### Zed
 
@@ -591,13 +592,14 @@ here stops taking effect, delete the matching block from that file and run
 The lock screen input field keeps the Noctalia palette (community "Oxocarbon");
 only the background, the mark and the panel shape come from this package.
 
-## System-Level Files (CachyOS + niri)
+## System-Level Files
 
-Copied with `sudo` by `install.sh` (not symlinked):
+Copied with `sudo` by `install.sh` (not symlinked). Only `/etc/keyd` is
+installed on both machines; the rest is CachyOS + niri only:
 
+- `/etc/keyd/default.conf` — Caps Lock → Backspace, via `keyd.service`
 - `/etc/udev/rules.d/59-vial.rules`, `/etc/udev/rules.d/99-vial.rules` — Vial keyboard access
 - `/etc/modules-load.d/i2c-dev.conf` — loads `i2c-dev` so `ddcutil` can set the external monitor's brightness
-- `/etc/keyd/default.conf` — Caps Lock → Backspace (CachyOS only; Omarchy uses `hypr/.config/hypr/input.lua`)
 - `/usr/local/bin/mkinitcpio` — warns when Limine boot entries need `limine-mkinitcpio`
 - `/usr/share/sddm/themes/cachyos/` + `/etc/sddm.conf.d/10-theme.conf` — login screen (see above)
 - `/usr/local/bin/sddm-theme-sync` + `/etc/systemd/system/sddm-theme-sync.{path,service}` — keeps both screens on the current wallpaper

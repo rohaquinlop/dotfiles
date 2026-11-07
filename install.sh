@@ -157,10 +157,44 @@ enable_user_services() {
   done
 }
 
+# Caps Lock as Backspace comes from keyd on both machines: it applies below the
+# compositor, so the TTY and the desktop share one mapping. hypr/input.lua sets
+# the same option inside Hyprland as a fallback when keyd is not running.
+install_keyd() {
+  if [ ! -d system/keyd ]; then
+    return 0
+  fi
+
+  if ! command -v keyd >/dev/null 2>&1; then
+    log_warn "keyd is not installed — skipping keyd config and service"
+    return 0
+  fi
+
+  log_info "Installing keyd config (requires sudo)..."
+  sudo mkdir -p /etc/keyd
+  local conf
+  for conf in system/keyd/*.conf; do
+    [ -f "$conf" ] || continue
+    sudo cp "$conf" "/etc/keyd/$(basename "$conf")"
+    log_ok "keyd config: $(basename "$conf")"
+  done
+
+  if sudo systemctl enable --now keyd >/dev/null 2>&1; then
+    log_ok "keyd.service"
+  else
+    log_warn "could not enable keyd.service"
+  fi
+
+  if keyd check >/dev/null 2>&1; then
+    log_ok "keyd config valid"
+  else
+    log_warn "keyd config check failed — run: keyd check"
+  fi
+}
+
 install_system_files() {
   if $OMARCHY; then
-    log_info "Omarchy detected: SDDM, keyd, Limine and udev files stay untouched."
-    log_info "Caps Lock -> Backspace comes from hypr/.config/hypr/input.lua."
+    log_info "Omarchy detected: SDDM, Limine and udev files stay untouched."
     return 0
   fi
 
@@ -202,20 +236,6 @@ install_system_files() {
     sudo modprobe i2c-dev 2>/dev/null && log_ok "i2c-dev" || log_warn "could not load i2c-dev — reboot to get monitor brightness"
   fi
 
-  if [ -d system/keyd ]; then
-    sudo mkdir -p /etc/keyd
-    for conf in system/keyd/*.conf; do
-      [ -f "$conf" ] || continue
-      sudo cp "$conf" "/etc/keyd/$(basename "$conf")"
-      log_ok "keyd config: $(basename "$conf")"
-    done
-    if pacman -Qq keyd >/dev/null 2>&1; then
-      sudo systemctl enable --now keyd 2>/dev/null && log_ok "keyd.service"
-    else
-      log_warn "keyd is not installed — skipping keyd.service"
-    fi
-  fi
-
   for script in system/local/bin/*; do
     [ -f "$script" ] || continue
     sudo cp "$script" "/usr/local/bin/$(basename "$script")"
@@ -251,15 +271,22 @@ install_system_files() {
 }
 
 omarchy_notes() {
-  log_info "Omarchy: the Caps Lock override reloads with Hyprland."
+  log_info "Caps Lock -> Backspace is installed through keyd (system-wide)."
+  log_info "hypr/input.lua keeps the same mapping as a Hyprland fallback."
   echo "  hyprctl reload"
+
+  local login_shell
+  login_shell="$(getent passwd "$USER" | cut -d: -f7)"
 
   if ! command -v zsh >/dev/null 2>&1; then
     log_warn "zsh is not installed yet; the new ~/.zshrc is inactive until it is."
     echo "  sudo pacman -S --needed \$(tr '\\n' ' ' < packages-omarchy.txt)"
     echo "  chsh -s /usr/bin/zsh"
+  elif [ "$login_shell" != /usr/bin/zsh ] && [ "$login_shell" != /bin/zsh ]; then
+    log_warn "zsh is installed, but the login shell is $login_shell."
+    echo "  chsh -s /usr/bin/zsh"
   else
-    log_ok "zsh is installed; make sure it is the login shell: chsh -s /usr/bin/zsh"
+    log_ok "zsh is the login shell"
   fi
 
   if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && command -v hyprctl >/dev/null 2>&1; then
@@ -298,6 +325,8 @@ main() {
   apply_app_templates
   echo ""
   enable_user_services
+  echo ""
+  install_keyd
   echo ""
   install_system_files
 
