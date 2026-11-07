@@ -80,6 +80,14 @@ Select **DeepSeek Harness** with `SUPER + SPACE`. `~/.local/bin/dsh-web`
 starts the service if it is stopped, then opens the UI with
 `omarchy-launch-webapp`.
 
+`~/.local/bin/dsh-run` waits until Omarchy imports the Hyprland environment
+into the systemd user manager. Commands the harness runs can then use
+`hyprctl` and the Wayland socket.
+
+The server requires a per-run token and prints the authenticated URL to
+`journalctl --user -u dsh-web.service`. The launcher opens that URL, so a
+fresh browser profile also works.
+
 Update the harness with the same prefix, then restart the service:
 
 ```bash

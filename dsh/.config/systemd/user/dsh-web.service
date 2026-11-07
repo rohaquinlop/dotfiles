@@ -9,7 +9,7 @@ After=network.target
 Type=simple
 WorkingDirectory=%h
 Environment=PATH=/usr/share/omarchy/bin:%h/.local/share/mise/shims:/usr/local/sbin:/usr/local/bin:/usr/bin:%h/.local/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl
-ExecStart=/usr/bin/env node %h/.local/share/dsh/node_modules/.bin/dsh --profile web --no-open --host 127.0.0.1 --port 3080
+ExecStart=%h/.local/bin/dsh-run
 Restart=on-failure
 RestartSec=3
 

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Start the DeepSeek Harness web UI with the Hyprland session environment.
+#
+# dsh-web.service starts at login, before Omarchy imports the graphical session
+# environment into the systemd user manager. Desktop tools that the harness runs
+# (hyprctl, screenshots) need HYPRLAND_INSTANCE_SIGNATURE and WAYLAND_DISPLAY,
+# so wait for that import and copy the values into this process first.
+set -u
+
+read_env() {
+  systemctl --user show-environment 2>/dev/null | sed -n "s/^$1=//p" | head -1
+}
+
+i=0
+while [ "$i" -lt 60 ]; do
+  signature=$(read_env HYPRLAND_INSTANCE_SIGNATURE)
+  [ -n "$signature" ] && break
+  sleep 0.5
+  i=$((i + 1))
+done
+
+if [ -z "${signature:-}" ]; then
+  echo "dsh-run: no HYPRLAND_INSTANCE_SIGNATURE after 30s; starting without it" >&2
+fi
+
+for name in HYPRLAND_INSTANCE_SIGNATURE WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE; do
+  value=$(read_env "$name")
+  [ -n "$value" ] && export "$name=$value"
+done
+
+exec /usr/bin/env node "$HOME/.local/share/dsh/node_modules/.bin/dsh" \
+  --profile web --no-open --host 127.0.0.1 --port 3080

@@ -56,8 +56,12 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`). On Omarchy only
   `~/.local/share/dsh/node_modules/.bin/dsh --profile web --no-open` from the
   local npm prefix. `install.sh` enables it but does not start it, because a
   manual `dsh web` may own the port. `~/.local/bin/dsh-web` starts it when
-  needed, then opens the web app. The unit has a `ConditionPathExists` guard
-  for the external npm install.
+  needed, then opens the web app. `~/.local/bin/dsh-run` waits for Omarchy to
+  import the graphical session environment into the systemd user manager, so
+  harness commands can use `hyprctl`. The launcher opens the token URL from
+  `journalctl --user -u dsh-web.service`; the bare address returns 401 without
+  a trust cookie. The unit has a `ConditionPathExists` guard for the external
+  npm install.
 - **Caps Lock is Backspace through keyd.** `system/keyd/default.conf` maps it
   below the compositor, so the TTY and the desktop share one mapping.
   `install.sh` copies it to `/etc/keyd/` and enables `keyd.service` on both
