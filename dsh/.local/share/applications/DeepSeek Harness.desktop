@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=DeepSeek Harness
+Comment=DeepSeek Harness web UI
+Exec=/home/rohaquinlop/.local/bin/dsh-web
+Terminal=false
+Type=Application
+Icon=deepseek-harness
+StartupNotify=true
+Categories=Development;

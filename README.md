@@ -18,6 +18,7 @@ Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | `git` | `~/.config/git/` | Git configuration and identity |
 | `zed` | `~/.config/zed/` | Zed settings and Helix-style keymap |
 | `hypr` | `~/.config/hypr/input.lua` | Caps Lock → Backspace |
+| `dsh` | `~/.config/systemd/user/`, `~/.local/` | DeepSeek Harness service and app launcher |
 
 The remaining packages (niri, Noctalia, SDDM, Neovim, btop, herdr, bash) stay
 for the old machine. Omarchy owns its Hyprland defaults, bar, lock screen, btop
@@ -32,9 +33,10 @@ chsh -s /usr/bin/zsh
 ./install.sh
 ```
 
-The installer backs up conflicting files, stows the six packages, links the
-alacritty font, installs the keyd config, enables `keyd.service` and reloads
-Hyprland. The package step, `chsh` and the keyd step ask for your password.
+The installer backs up conflicting files, stows the seven packages, links the
+alacritty font, installs the keyd config, enables `keyd.service` and
+`dsh-web.service`, and reloads Hyprland. The package step, `chsh` and the
+keyd step ask for your password.
 
 ### Caps Lock → Backspace
 
@@ -61,6 +63,32 @@ skips missing imports and later imports replace earlier ones, so the Omarchy
 palette wins on this machine and the fallback still styles the other two.
 The font is Noto Sans Mono, redirected to `NotoSansM Nerd Font Mono` by
 `alacritty/.config/fontconfig/conf.d/50-noto-nerd.conf`.
+
+### DeepSeek Harness
+
+The `dsh` package runs the harness web UI as a systemd user service and adds
+an app launcher. Install the harness once, outside pacman:
+
+```bash
+npm install --prefix ~/.local/share/dsh @deepseek-ai/dsh@0.2.2-rc.1
+systemctl --user daemon-reload
+systemctl --user enable --now dsh-web.service
+```
+
+`dsh-web.service` listens on `127.0.0.1:3080` and does not open a browser.
+Select **DeepSeek Harness** with `SUPER + SPACE`. `~/.local/bin/dsh-web`
+starts the service if it is stopped, then opens the UI with
+`omarchy-launch-webapp`.
+
+Update the harness with the same prefix, then restart the service:
+
+```bash
+npm install --prefix ~/.local/share/dsh @deepseek-ai/dsh@latest
+systemctl --user restart dsh-web.service
+```
+
+Do not run `npx @deepseek-ai/dsh web` while the service is active. Both bind
+port 3080.
 
 ## Fresh Install (CachyOS + niri)
 
@@ -98,6 +126,7 @@ niri reloads its configuration automatically after the files change.
 | `noctalia` | `~/.config/noctalia/` | CachyOS | Lock screen: flat dark background with the CachyOS mark, compact login box |
 | `zed` | `~/.config/zed/` | Omarchy | Zed settings and Helix-style keymap |
 | `hypr` | `~/.config/hypr/input.lua` | Omarchy | Caps Lock → Backspace |
+| `dsh` | `~/.config/systemd/user/`, `~/.local/` | Omarchy | DeepSeek Harness user service and app launcher |
 
 `lazygit` is installed but intentionally **not** stowed: its config can contain
 credentials. Everything else is symlinked into the repo, so editing a config in

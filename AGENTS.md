@@ -19,7 +19,7 @@ picks the stow set:
 
 | Machine | Stowed packages |
 |---------|-----------------|
-| Omarchy | `zsh alacritty starship git zed hypr` |
+| Omarchy | `zsh alacritty starship git zed hypr dsh` |
 | CachyOS + niri, MacBook | `zsh bash alacritty nvim starship btop git gh herdr niri config-misc noctalia` |
 
 Omarchy owns Hyprland defaults, the bar, the lock screen, btop, herdr and the
@@ -52,6 +52,12 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`). On Omarchy only
 
 ## Critical Quirks
 
+- **The harness service owns port 3080.** `dsh-web.service` runs
+  `~/.local/share/dsh/node_modules/.bin/dsh --profile web --no-open` from the
+  local npm prefix. `install.sh` enables it but does not start it, because a
+  manual `dsh web` may own the port. `~/.local/bin/dsh-web` starts it when
+  needed, then opens the web app. The unit has a `ConditionPathExists` guard
+  for the external npm install.
 - **Caps Lock is Backspace through keyd.** `system/keyd/default.conf` maps it
   below the compositor, so the TTY and the desktop share one mapping.
   `install.sh` copies it to `/etc/keyd/` and enables `keyd.service` on both
@@ -182,6 +188,10 @@ stow --no-folding -n -v -t ~ <package-name>
 # Audio: jack watcher for the analog UCM profile (see Critical Quirks)
 systemctl --user status hda-analog-output
 journalctl --user -u hda-analog-output
+
+# DeepSeek Harness web UI (port 3080)
+systemctl --user status dsh-web.service
+journalctl --user -u dsh-web.service
 
 # Omarchy: install packages, set the login shell, stow and install keyd
 sudo pacman -S --needed $(tr '\n' ' ' < packages-omarchy.txt)

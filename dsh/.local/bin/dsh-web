@@ -1,0 +1,21 @@
+#!/bin/sh
+# Open the DeepSeek Harness web UI.
+#
+# The UI is served by dsh-web.service. If the service is stopped, start it and
+# wait for the port before handing the URL to Omarchy's web app launcher.
+set -u
+
+url="http://127.0.0.1:3080/"
+
+if ! curl -fsS -o /dev/null --max-time 1 "$url" 2>/dev/null; then
+  systemctl --user start dsh-web.service >/dev/null 2>&1 || true
+
+  i=0
+  while [ "$i" -lt 40 ]; do
+    curl -fsS -o /dev/null --max-time 1 "$url" 2>/dev/null && break
+    sleep 0.5
+    i=$((i + 1))
+  done
+fi
+
+exec /usr/share/omarchy/bin/omarchy-launch-webapp "$url"

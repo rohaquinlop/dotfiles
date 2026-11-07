@@ -27,7 +27,7 @@ fi
 # bash startup files. Share only the personal shell, terminal, prompt, git and
 # editor configs, plus the Caps Lock override.
 if $OMARCHY; then
-  STOW_PACKAGES=(zsh alacritty starship git zed hypr)
+  STOW_PACKAGES=(zsh alacritty starship git zed hypr dsh)
 else
   STOW_PACKAGES=(zsh bash alacritty nvim starship btop git gh herdr niri config-misc noctalia)
 fi
@@ -130,18 +130,26 @@ apply_app_templates() {
 # Stow only links the units a package ships under ~/.config/systemd/user; they
 # still have to be enabled, and restarted so an updated unit or script is used.
 enable_user_services() {
-  if $OMARCHY; then
-    return 0
-  fi
-
-  log_info "Enabling user services..."
-
   if ! command -v systemctl >/dev/null 2>&1 || ! systemctl --user show-environment >/dev/null 2>&1; then
     log_warn "no systemd user session — skipping"
     return 0
   fi
 
+  log_info "Enabling user services..."
   systemctl --user daemon-reload || log_warn "could not reload user units"
+
+  # Omarchy: only the harness service. It starts at the next login and is not
+  # started here, because a manual `dsh web` may already own port 3080.
+  if $OMARCHY; then
+    if [ -f "$HOME/.config/systemd/user/dsh-web.service" ]; then
+      if systemctl --user enable dsh-web.service >/dev/null 2>&1; then
+        log_ok "dsh-web.service (starts at next login)"
+      else
+        log_warn "could not enable dsh-web.service"
+      fi
+    fi
+    return 0
+  fi
 
   local unit
   for unit in config-misc/.config/systemd/user/*.service; do
@@ -274,6 +282,10 @@ omarchy_notes() {
   log_info "Caps Lock -> Backspace is installed through keyd (system-wide)."
   log_info "hypr/input.lua keeps the same mapping as a Hyprland fallback."
   echo "  hyprctl reload"
+
+  if [ -f "$HOME/.config/systemd/user/dsh-web.service" ]; then
+    log_info "DeepSeek Harness: open it from SUPER+SPACE (starts at next login)."
+  fi
 
   local login_shell
   login_shell="$(getent passwd "$USER" | cut -d: -f7)"
