@@ -19,7 +19,11 @@ setopt HIST_IGNORE_SPACE     # don't record commands starting with a space
 setopt HIST_VERIFY           # show expansion before running history commands
 
 # ── Completion ──────────────────────────────────────────────────────
-[[ -d /usr/share/zsh/plugins/zsh-completions ]] && fpath=(/usr/share/zsh/plugins/zsh-completions $fpath)
+# zsh-completions: Arch installs the functions into
+# /usr/share/zsh/site-functions, which is already in fpath. Homebrew keeps its
+# own share directory, so add that one only.
+[[ -d /opt/homebrew/share/zsh-completions ]] && fpath=(/opt/homebrew/share/zsh-completions $fpath)
+[[ -d /usr/local/share/zsh-completions ]] && fpath=(/usr/local/share/zsh-completions $fpath)
 autoload -Uz compinit
 compinit -C
 zstyle ':completion:*' menu select
