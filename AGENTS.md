@@ -1,7 +1,8 @@
 # AGENTS.md
 
-Dotfiles repo for CachyOS + niri (ThinkPad X1 Carbon Gen 9). Managed with GNU
-Stow. Shell, editor, terminal and prompt configs are shared with a MacBook Pro.
+Dotfiles repo for Omarchy (Hyprland) and CachyOS + niri on a ThinkPad X1 Carbon
+Gen 9. Managed with GNU Stow. Shell, editor, terminal, prompt and Zed configs
+are shared with a MacBook Pro.
 
 ## Architecture
 
@@ -9,10 +10,20 @@ Each stow package mirrors the target path under `~`:
 
 ```
 niri/.config/niri/cfg/keybinds.kdl  →  ~/.config/niri/cfg/keybinds.kdl
-shell/.zshrc                        →  ~/.zshrc
+zsh/.zshrc                          →  ~/.zshrc
+hypr/.config/hypr/input.lua         →  ~/.config/hypr/input.lua
 ```
 
-Stowed packages: `shell alacritty nvim starship btop git gh herdr niri config-misc noctalia`.
+`install.sh` detects Omarchy (`omarchy` on PATH or `/usr/share/omarchy`) and
+picks the stow set:
+
+| Machine | Stowed packages |
+|---------|-----------------|
+| Omarchy | `zsh alacritty starship git zed hypr` |
+| CachyOS + niri, MacBook | `zsh bash alacritty nvim starship btop git gh herdr niri config-misc noctalia` |
+
+Omarchy owns Hyprland defaults, the bar, the lock screen, btop, herdr and the
+bash startup files; do not add them to the Omarchy set.
 
 Desktop palette: **Akane**, from the Omarchy theme
 `github.com/Grenish/omarchy-akane-theme` — colours and wallpapers only, no
@@ -20,13 +31,16 @@ Omarchy tooling. Almost every app follows Noctalia automatically through
 Noctalia's template engine (`[theme.templates]` in
 `noctalia/.config/noctalia/config.toml`): btop, GTK 3/4
 (incl. the Qt palette via `QT_QPA_PLATFORMTHEME=gtk3`), niri, neovim, bat, fzf,
-herdr, micro, pi, fastfetch, PrismLauncher and Chromium. Alacritty and starship
-are excluded on purpose and stay on Catppuccin Mocha. Hand-written copies that
+herdr, micro, pi, fastfetch, PrismLauncher and Chromium. On the niri machine,
+Alacritty and starship are excluded on purpose and stay on Catppuccin Mocha;
+on Omarchy, Alacritty follows the active Omarchy theme instead (see the README
+Terminal section). Hand-written copies that
 survive as offline fallbacks: `palettes/akane.json`, `btop/themes/akane.theme`,
 the niri focus-ring gradient in `cfg/layout.kdl`. See the README table for the
 full mapping.
 
-Non-stowed files (require `sudo cp`, handled by `install.sh`):
+Non-stowed files (require `sudo cp`, handled by `install.sh`; skipped on
+Omarchy, which manages them itself):
 - `system/udev/rules.d/` → `/etc/udev/rules.d/`
 - `system/modules-load.d/` → `/etc/modules-load.d/` (loads `i2c-dev`, for
   monitor brightness — see the README)
@@ -38,6 +52,20 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`):
 
 ## Critical Quirks
 
+- **Caps Lock is Backspace on Omarchy, through Hyprland, not keyd.**
+  `hypr/.config/hypr/input.lua` sets `kb_options = "caps:backspace"`, which
+  replaces Omarchy's `compose:caps` default. `system/keyd/default.conf` holds
+  the same mapping for the CachyOS machine; `install.sh` does not install it on
+  Omarchy. A side effect: Caps Lock compose sequences (fcitx5 + `~/.XCompose`)
+  stop working on the Omarchy machine.
+- **`omazed` writes the Zed `theme` key through the stow symlink.** A theme
+  change can therefore appear as a `git diff` in
+  `zed/.config/zed/settings.json`. Keep `"theme": "Omazed"` so the sync keeps
+  working; `my-zed-config` is the upstream source of the other keys.
+- **Alacritty import order is deliberate.** `theme.toml` is the Catppuccin
+  fallback, the Omarchy theme import overrides it, then `font.toml` and
+  `local.toml`. Alacritty skips missing imports and later imports win, so the
+  same file works on Omarchy, niri and the MacBook.
 - **Noctalia can write into the repo through the stow symlinks.** The app
 templates it applies (`noctalia msg templates-apply`, also run by `install.sh`)
 own the `[theme.custom]` block in `herdr/.config/herdr/config.toml`, which
@@ -155,6 +183,12 @@ stow --no-folding -n -v -t ~ <package-name>
 systemctl --user status hda-analog-output
 journalctl --user -u hda-analog-output
 
+# Omarchy: install packages, set the login shell, stow, apply the input override
+sudo pacman -S --needed $(tr '\n' ' ' < packages-omarchy.txt)
+chsh -s /usr/bin/zsh
+./install.sh
+hyprctl reload && hyprctl getoption input:kb_options
+
 # Validate niri config
 niri validate -c niri/.config/niri/config.kdl
 
@@ -173,7 +207,9 @@ mv ~/.config/new-app/config new-pkg/.config/new-app/config
 stow --no-folding -t ~ new-pkg
 ```
 
-Add the package to `STOW_PACKAGES` in `install.sh` and to the README table.
+Add the package to the matching stow set in `install.sh` and to the README
+table. Packages that only apply to the Omarchy machine go in the Omarchy set;
+packages that only apply to the niri machine stay out of it.
 
 ## Sensitive Files (Never Commit)
 

@@ -72,10 +72,6 @@ elif [[ -r /usr/local/opt/fzf/shell/key-bindings.zsh ]]; then
   source /usr/local/opt/fzf/shell/key-bindings.zsh
   source /usr/local/opt/fzf/shell/completion.zsh
 fi
-
-# Noctalia's fzf theme (generated, colour-only, so it is safe to source after
-# the key bindings; absent on machines without Noctalia).
-[[ -r "$HOME/.config/fzf/themes/noctalia.sh" ]] && source "$HOME/.config/fzf/themes/noctalia.sh"
 fi
 
 # ── PATH / environment ──────────────────────────────────────────────
@@ -84,7 +80,13 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
-export EDITOR="${EDITOR:-nvim}"
+# Omarchy ships Zed; its CLI is `zeditor` and git needs the blocking --wait
+# flag to keep the terminal alive until the editor closes.
+if command -v zeditor >/dev/null 2>&1; then
+  export EDITOR="${EDITOR:-zeditor --wait}"
+else
+  export EDITOR="${EDITOR:-nvim}"
+fi
 export VISUAL="${VISUAL:-$EDITOR}"
 
 # ── Prompt ──────────────────────────────────────────────────────────
@@ -153,9 +155,15 @@ alias gl='git pull'
 alias gp='git push'
 alias glog='git log --oneline --graph --decorate'
 
-# Arch/CachyOS helpers
+# Arch/Omarchy helpers
 if [[ "$OSTYPE" == linux* ]]; then
-  alias update='sudo pacman -Syu'
+  # Omarchy owns the update flow (AUR, migrations, hooks); plain pacman -Syu
+  # skips those, so use the Omarchy command where it exists.
+  if command -v omarchy >/dev/null 2>&1; then
+    alias update='omarchy update'
+  else
+    alias update='sudo pacman -Syu'
+  fi
   alias cleanup='sudo pacman -Rsn $(pacman -Qtdq)'
   alias rmpkg='sudo pacman -Rsn'
   alias fixpacman='sudo rm /var/lib/pacman/db.lck'

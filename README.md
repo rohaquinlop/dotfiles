@@ -1,11 +1,67 @@
 # Dotfiles
 
-Personal **CachyOS + niri** configuration for a ThinkPad X1 Carbon Gen 9.
-The shell, editor, terminal and prompt configs are shared with a MacBook Pro.
+Personal configuration for a ThinkPad X1 Carbon Gen 9. The same repository is
+used by **Omarchy** (Hyprland) on the laptop, by a **CachyOS + niri** install,
+and by a MacBook Pro for the shell, terminal and prompt configs.
 
 Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
-## Fresh Install
+## Omarchy
+
+`install.sh` detects Omarchy and stows only the packages that apply there:
+
+| Package | Target | Description |
+|---------|--------|-------------|
+| `zsh` | `~/` | zsh: starship, zoxide, fzf, eza, git aliases, venv hook |
+| `alacritty` | `~/.config/alacritty/` | Terminal: Omarchy palette, font, persistent font size |
+| `starship` | `~/.config/starship.toml` | Prompt (catppuccin mocha) |
+| `git` | `~/.config/git/` | Git configuration and identity |
+| `zed` | `~/.config/zed/` | Zed settings and Helix-style keymap |
+| `hypr` | `~/.config/hypr/input.lua` | Caps Lock → Backspace |
+
+The remaining packages (niri, Noctalia, SDDM, Neovim, btop, herdr, bash) stay
+for the old machine. Omarchy owns its Hyprland defaults, bar, lock screen, btop
+theme, herdr config and bash startup files, so the installer leaves them alone.
+
+### Omarchy install
+
+```bash
+cd ~/.dotfiles
+sudo pacman -S --needed $(tr '\n' ' ' < packages-omarchy.txt)
+chsh -s /usr/bin/zsh
+./install.sh
+```
+
+The installer backs up conflicting files, stows the six packages, links the
+alacritty font and reloads Hyprland. Only the package step and `chsh` ask for
+your password; the rest runs as the user.
+
+### Caps Lock → Backspace
+
+`hypr/.config/hypr/input.lua` sets `kb_options = "caps:backspace"`, replacing
+Omarchy's `compose:caps` default. It is Hyprland-only and needs no daemon, so
+no TTY remap. `system/keyd/default.conf` keeps the same mapping for the
+CachyOS machine. Caps Lock compose sequences stop working on Omarchy as a
+result.
+
+### Zed
+
+`zed/.config/zed/settings.json` comes from
+[`my-zed-config`](https://github.com/rohaquinlop/my-zed-config), adapted to
+Omarchy: theme `Omazed`, JetBrainsMono Nerd Font, telemetry off, AI disabled.
+`omazed` rewrites the `theme` key through the stow symlink when the Omarchy
+theme changes, so a theme switch can appear in `git diff`.
+
+### Terminal
+
+`alacritty.toml` loads `~/.config/alacritty/theme.toml` as the fallback, then
+the active Omarchy theme, then the per-OS font and `local.toml`. Alacritty
+skips missing imports and later imports replace earlier ones, so the Omarchy
+palette wins on this machine and the fallback still styles the other two.
+The font is Noto Sans Mono, redirected to `NotoSansM Nerd Font Mono` by
+`alacritty/.config/fontconfig/conf.d/50-noto-nerd.conf`.
+
+## Fresh Install (CachyOS + niri)
 
 ```bash
 git clone git@github.com:rohaquinlop/dotfiles.git ~/.dotfiles
@@ -25,19 +81,22 @@ niri reloads its configuration automatically after the files change.
 
 ## Packages
 
-| Package | Target | Description |
-|---------|--------|-------------|
-| `shell` | `~/` | zsh + bash: starship, zoxide, fzf, eza, git aliases, venv hook |
-| `niri` | `~/.config/niri/` | Window manager config, output layout, helper scripts |
-| `alacritty` | `~/.config/alacritty/` | Terminal (catppuccin theme, persistent font size) |
-| `nvim` | `~/.config/nvim/` | Neovim (LazyVim) |
-| `starship` | `~/.config/starship.toml` | Prompt (catppuccin mocha) |
-| `btop` | `~/.config/btop/` | System monitor |
-| `git` | `~/.config/git/` | Git configuration |
-| `gh` | `~/.config/gh/` | GitHub CLI |
-| `herdr` | `~/.config/herdr/` | Herdr terminal workspace manager |
-| `config-misc` | `~/.config/`, `~/.local/bin/` | fontconfig, GTK bookmarks, mimeapps, chromium flags, imv, obsidian, WirePlumber audio rules, `hda-analog-output` jack watcher |
-| `noctalia` | `~/.config/noctalia/` | Lock screen: flat dark background with the CachyOS mark, compact login box |
+| Package | Target | Used on | Description |
+|---------|--------|---------|-------------|
+| `zsh` | `~/` | all | zsh: starship, zoxide, fzf, eza, git aliases, venv hook |
+| `bash` | `~/` | CachyOS, MacBook | bash startup files that hand interactive shells to zsh |
+| `niri` | `~/.config/niri/` | CachyOS | Window manager config, output layout, helper scripts |
+| `alacritty` | `~/.config/alacritty/` | all | Terminal: palette, font, persistent font size |
+| `nvim` | `~/.config/nvim/` | CachyOS, MacBook | Neovim (LazyVim) |
+| `starship` | `~/.config/starship.toml` | all | Prompt (catppuccin mocha) |
+| `btop` | `~/.config/btop/` | CachyOS | System monitor |
+| `git` | `~/.config/git/` | all | Git configuration |
+| `gh` | `~/.config/gh/` | CachyOS | GitHub CLI |
+| `herdr` | `~/.config/herdr/` | CachyOS | Herdr terminal workspace manager |
+| `config-misc` | `~/.config/`, `~/.local/bin/` | CachyOS | GTK bookmarks, mimeapps, chromium flags, imv, obsidian, WirePlumber audio rules, `hda-analog-output` jack watcher |
+| `noctalia` | `~/.config/noctalia/` | CachyOS | Lock screen: flat dark background with the CachyOS mark, compact login box |
+| `zed` | `~/.config/zed/` | Omarchy | Zed settings and Helix-style keymap |
+| `hypr` | `~/.config/hypr/input.lua` | Omarchy | Caps Lock → Backspace |
 
 `lazygit` is installed but intentionally **not** stowed: its config can contain
 credentials. Everything else is symlinked into the repo, so editing a config in
@@ -223,7 +282,8 @@ Each package mirrors the target path under `~`:
 
 ```
 ~/.dotfiles/niri/.config/niri/cfg/keybinds.kdl  ->  ~/.config/niri/cfg/keybinds.kdl
-~/.dotfiles/shell/.zshrc                        ->  ~/.zshrc
+~/.dotfiles/zsh/.zshrc                          ->  ~/.zshrc
+~/.dotfiles/hypr/.config/hypr/input.lua         ->  ~/.config/hypr/input.lua
 ```
 
 ### Stow commands
@@ -264,15 +324,17 @@ or the Nix `nerd-fonts.jetbrains-mono` package).
   `fonts/macos.toml` (JetBrainsMono Nerd Font). On Linux, fontconfig
   redirects the family to the patched **NotoSansM Nerd Font Mono**
   (`ttf-noto-nerd`) via
-  `config-misc/.config/fontconfig/conf.d/50-noto-nerd.conf`, so text keeps
+  `alacritty/.config/fontconfig/conf.d/50-noto-nerd.conf`, so text keeps
   Noto Sans Mono letterforms while starship/nvim/btop glyphs come from the
   same font. Plain Noto Sans Mono has no Nerd Font glyphs, and alacritty's
   per-glyph fallback mis-renders the powerline caps.
-- **Linux packages**: `ttf-noto-nerd` for the patched font; Noto Sans Mono
-  itself ships with CachyOS (`noto-fonts`, pulled in by
-  `cachyos-niri-noctalia`).
+- **Linux packages**: `ttf-noto-nerd` for the patched font (in `packages.txt`
+  and `packages-omarchy.txt`); Noto Sans Mono itself ships with CachyOS
+  (`noto-fonts`, pulled in by `cachyos-niri-noctalia`).
+- **Zed**: `zed/.config/zed/settings.json` uses JetBrainsMono Nerd Font, which
+  Omarchy installs and omazed points at.
 
-## Theme: Akane
+## Theme: Akane (CachyOS + niri)
 
 The desktop palette is **Akane** (茜) from
 [Grenish/omarchy-akane-theme](https://github.com/Grenish/omarchy-akane-theme) —
@@ -283,7 +345,7 @@ is installed.
 | Surface | How it carries the palette |
 |---------|----------------------------|
 | Noctalia (bar, panels, lock screen) | `noctalia/.config/noctalia/palettes/akane.json`, selected with `noctalia msg color-scheme-set custom akane` (writes `settings.toml`, which wins) |
-| Alacritty | Not themed: `alacritty.toml` imports `theme.toml` (Catppuccin Mocha). Noctalia's `alacritty` template is disabled; `akane.toml` stays for a manual switch |
+| Alacritty | `alacritty.toml` imports `theme.toml` (Catppuccin Mocha) as the fallback, then the active Omarchy theme, so the terminal follows `omarchy theme set` on the laptop. Noctalia's `alacritty` template is disabled; `akane.toml` stays for a manual switch |
 | btop | `btop/.config/btop/themes/noctalia.theme` generated by Noctalia's built-in `btop` template, `color_theme = "noctalia"`. `akane.theme` and `catppuccin.theme` stay for a manual switch |
 | starship | Not themed: `palette = 'catppuccin_mocha'`. Noctalia's `starship` template is disabled; the `akane` palette stays for a manual switch |
 | niri | `~/.config/niri/noctalia.kdl` (built-in `niri` template) included last, so it wins over the Akane gradient `#e15a48 → #f0b45a` kept in `cfg/layout.kdl` as the fallback |
@@ -380,7 +442,7 @@ does not own still need their own switch: set btop's `color_theme`, drop the
 `focus-ring` block in `cfg/layout.kdl`, edit `general.import` in
 `alacritty.toml` and `palette` in `starship.toml`.
 
-## Keeping Both Screens in Sync
+## Keeping Both Screens in Sync (CachyOS + niri)
 
 The greeter cannot read your home directory (mode 700), and Noctalia's lock
 screen has no widget for the mark, so both screens use a pre-rendered image.
@@ -428,7 +490,7 @@ greeter uses until the sync has run once. Only the generators
 (`system/sddm/make-wordmark.sh`, `system/local/bin/sddm-theme-sync`) and the
 theme's QML are tracked.
 
-## Login Screen (SDDM)
+## Login Screen (SDDM, CachyOS + niri)
 
 The greeter is a minimal SDDM theme in `system/sddm/`, copied to
 `/usr/share/sddm/themes/cachyos` by `install.sh`: the distro's own boot
@@ -500,7 +562,7 @@ mark centred on 960, whole block centred vertically.
 
 To go back to the stock greeter: `sudo rm /etc/sddm.conf.d/10-theme.conf`.
 
-## Lock Screen (Noctalia)
+## Lock Screen (Noctalia, CachyOS + niri)
 
 Closing the lid suspends the machine, and waking shows the **Noctalia** lock
 screen, not SDDM. Noctalia already locks before sleep (`lock_before_suspend`),
@@ -529,13 +591,13 @@ here stops taking effect, delete the matching block from that file and run
 The lock screen input field keeps the Noctalia palette (community "Oxocarbon");
 only the background, the mark and the panel shape come from this package.
 
-## System-Level Files
+## System-Level Files (CachyOS + niri)
 
 Copied with `sudo` by `install.sh` (not symlinked):
 
 - `/etc/udev/rules.d/59-vial.rules`, `/etc/udev/rules.d/99-vial.rules` — Vial keyboard access
 - `/etc/modules-load.d/i2c-dev.conf` — loads `i2c-dev` so `ddcutil` can set the external monitor's brightness
-- `/etc/keyd/default.conf` — Caps Lock → Backspace
+- `/etc/keyd/default.conf` — Caps Lock → Backspace (CachyOS only; Omarchy uses `hypr/.config/hypr/input.lua`)
 - `/usr/local/bin/mkinitcpio` — warns when Limine boot entries need `limine-mkinitcpio`
 - `/usr/share/sddm/themes/cachyos/` + `/etc/sddm.conf.d/10-theme.conf` — login screen (see above)
 - `/usr/local/bin/sddm-theme-sync` + `/etc/systemd/system/sddm-theme-sync.{path,service}` — keeps both screens on the current wallpaper

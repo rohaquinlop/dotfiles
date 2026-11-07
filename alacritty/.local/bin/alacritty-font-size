@@ -42,11 +42,15 @@ target=$(awk -v t="$target" -v lo="$MIN_SIZE" -v hi="$MAX_SIZE" \
   'BEGIN{if(t<lo)t=lo; if(t>hi)t=hi; printf "%g", t}')
 
 # Scale of the compositor output the next window will use. ALACRITTY_SCALE
-# wins; otherwise the output of the focused workspace; otherwise the first
-# output. Falls back to 1 when niri or jq is unavailable.
+# wins; otherwise the scale of the focused monitor in Hyprland or niri.
+# Falls back to 1 when neither compositor nor jq is available.
 scale=1
 if [ -n "${ALACRITTY_SCALE:-}" ]; then
   scale=$ALACRITTY_SCALE
+elif command -v hyprctl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  detected=$(hyprctl monitors -j 2>/dev/null \
+    | jq -r '[.[] | select(.focused)][0].scale // empty' 2>/dev/null || true)
+  [ -n "${detected:-}" ] && scale=$detected
 elif command -v niri >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
   focused_output=$(niri msg --json workspaces 2>/dev/null \
     | jq -r '[.[] | select(.is_focused) | .output][0] // empty' 2>/dev/null || true)

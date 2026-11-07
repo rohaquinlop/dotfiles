@@ -1,0 +1,8 @@
+stow
+zsh
+zsh-completions
+zsh-autosuggestions
+zsh-syntax-highlighting
+zsh-history-substring-search
+ttf-noto-nerd
+jq

@@ -1,0 +1,43 @@
+// Zed keymap
+// Helix-flavored editing motions + file/buffer navigation only.
+[
+    {
+        "context": "Editor && (vim_mode == helix_normal || vim_mode == helix_select)",
+        "bindings": {
+            // From ~/.config/helix/config.toml
+            "cmd-d": "editor::SelectNext",
+            "ctrl-j": "vim::ScrollDown",
+            "ctrl-k": "vim::ScrollUp",
+            "alt-j": "editor::MoveLineDown",
+            "alt-k": "editor::MoveLineUp",
+            "alt-ctrl-j": "editor::MoveLineDown",
+            "alt-ctrl-k": "editor::MoveLineUp",
+
+            // Helix-style file/buffer navigation.
+            "space f": "file_finder::Toggle",
+            "space b": "tab_switcher::ToggleAll",
+            "space e": "project_panel::ToggleFocus",
+            "g n": "pane::ActivateNextItem",
+            "g p": "pane::ActivatePreviousItem",
+            "g b": "pane::ActivateLastItem",
+        },
+    },
+    {
+        "context": "ProjectPanel && not_editing",
+        "bindings": {
+            // Helix/terminal-style file tree navigation.
+            // Scoped to non-editing state so filename text inputs work normally.
+            "h": "project_panel::CollapseSelectedEntry",
+            "j": "menu::SelectNext",
+            "k": "menu::SelectPrevious",
+            "l": "project_panel::ExpandSelectedEntry",
+            "enter": "project_panel::Open",
+            "o": "project_panel::OpenPermanent",
+            "v": "project_panel::OpenSplitVertical",
+            "x": "project_panel::OpenSplitHorizontal",
+            "-": "project_panel::SelectParent",
+            ".": "project_panel::ToggleHideHidden",
+            "escape": "workspace::FocusCenterPane",
+        },
+    },
+]

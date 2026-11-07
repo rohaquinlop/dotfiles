@@ -1,5 +1,6 @@
 #!/bin/bash
-# Dotfiles installer for CachyOS + niri (also used by the MacBook for syncing).
+# Dotfiles installer. Omarchy is detected and gets only the packages that
+# apply there; the CachyOS + niri machine and the MacBook keep the full set.
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -16,18 +17,25 @@ log_ok()    { echo -e "${GREEN}[OK]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-STOW_PACKAGES=(
-  shell alacritty
-  nvim starship btop git gh
-  herdr niri
-  config-misc
-  noctalia
-)
+if command -v omarchy >/dev/null 2>&1 || [ -d /usr/share/omarchy ]; then
+  OMARCHY=true
+else
+  OMARCHY=false
+fi
+
+# Omarchy already owns Hyprland, the bar, the lock screen, btop, herdr and the
+# bash startup files. Share only the personal shell, terminal, prompt, git and
+# editor configs, plus the Caps Lock override.
+if $OMARCHY; then
+  STOW_PACKAGES=(zsh alacritty starship git zed hypr)
+else
+  STOW_PACKAGES=(zsh bash alacritty nvim starship btop git gh herdr niri config-misc noctalia)
+fi
 
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
 # Move existing regular files out of the way so stow can create its symlinks.
-# (First run on a fresh OS: the distro's default .zshrc, niri config, etc.)
+# (First run on a fresh OS: the distro's default .zshrc, alacritty config, etc.)
 backup_conflicts() {
   local pkg="$1" src rel dst
   while IFS= read -r src; do
@@ -94,12 +102,16 @@ setup_alacritty_font() {
 }
 
 # Noctalia renders the palette into the apps (see [theme.templates] in
-# noctalia/.config/noctalia/config.toml). On a fresh install the daemon is not
-# running yet, so a niri config that includes the generated noctalia.kdl would
-# fail to load: niri runs on its built-in defaults, keybinds and all. An empty
-# file is valid KDL, so niri starts on the Akane fallback in cfg/layout.kdl and
-# the shell fills the file in at login.
+# noctalia/.config/noctalia/config.toml). Not used on Omarchy: its own theme
+# system owns that. On the niri machine the daemon may not be running yet, so
+# a config that includes the generated noctalia.kdl would fail to load. An
+# empty file is valid KDL, so niri starts on the Akane fallback and the shell
+# fills the file in at login.
 apply_app_templates() {
+  if $OMARCHY; then
+    return 0
+  fi
+
   log_info "Rendering Noctalia app templates..."
 
   if [ ! -e "$HOME/.config/niri/noctalia.kdl" ]; then
@@ -118,6 +130,10 @@ apply_app_templates() {
 # Stow only links the units a package ships under ~/.config/systemd/user; they
 # still have to be enabled, and restarted so an updated unit or script is used.
 enable_user_services() {
+  if $OMARCHY; then
+    return 0
+  fi
+
   log_info "Enabling user services..."
 
   if ! command -v systemctl >/dev/null 2>&1 || ! systemctl --user show-environment >/dev/null 2>&1; then
@@ -142,6 +158,12 @@ enable_user_services() {
 }
 
 install_system_files() {
+  if $OMARCHY; then
+    log_info "Omarchy detected: SDDM, keyd, Limine and udev files stay untouched."
+    log_info "Caps Lock -> Backspace comes from hypr/.config/hypr/input.lua."
+    return 0
+  fi
+
   log_info "Installing system-level files (requires sudo)..."
 
   if [ -d system/sddm/themes ] && command -v sddm >/dev/null 2>&1; then
@@ -228,16 +250,45 @@ install_system_files() {
   log_ok "System files installed"
 }
 
+omarchy_notes() {
+  log_info "Omarchy: the Caps Lock override reloads with Hyprland."
+  echo "  hyprctl reload"
+
+  if ! command -v zsh >/dev/null 2>&1; then
+    log_warn "zsh is not installed yet; the new ~/.zshrc is inactive until it is."
+    echo "  sudo pacman -S --needed \$(tr '\\n' ' ' < packages-omarchy.txt)"
+    echo "  chsh -s /usr/bin/zsh"
+  else
+    log_ok "zsh is installed; make sure it is the login shell: chsh -s /usr/bin/zsh"
+  fi
+
+  if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && command -v hyprctl >/dev/null 2>&1; then
+    if hyprctl reload >/dev/null 2>&1; then
+      log_ok "Hyprland reloaded"
+    else
+      log_warn "could not reload Hyprland; run: hyprctl reload"
+    fi
+  fi
+}
+
 main() {
   echo ""
   echo "=========================================="
-  echo "  Dotfiles Installer (CachyOS + niri)"
+  if $OMARCHY; then
+    echo "  Dotfiles Installer (Omarchy)"
+  else
+    echo "  Dotfiles Installer (CachyOS + niri)"
+  fi
   echo "=========================================="
   echo ""
 
   if ! command -v stow >/dev/null 2>&1; then
     log_error "stow is not installed."
-    echo "  sudo pacman -S --needed $(tr '\n' ' ' < packages.txt)"
+    if $OMARCHY; then
+      echo "  sudo pacman -S --needed \$(tr '\\n' ' ' < packages-omarchy.txt)"
+    else
+      echo "  sudo pacman -S --needed \$(tr '\\n' ' ' < packages.txt)"
+    fi
     exit 1
   fi
 
@@ -249,6 +300,11 @@ main() {
   enable_user_services
   echo ""
   install_system_files
+
+  if $OMARCHY; then
+    echo ""
+    omarchy_notes
+  fi
 
   echo ""
   echo "=========================================="

@@ -1,6 +1,11 @@
 general.import = [
-  # Catppuccin Mocha. Not akane.toml or Noctalia's generated
+  # Catppuccin Mocha fallback for machines without Omarchy (the MacBook and
+  # the old niri laptop). Alacritty skips missing imports, and a later import
+  # replaces an earlier one.
   "~/.config/alacritty/theme.toml",
+  # Omarchy writes the active theme's terminal palette here, so the terminal
+  # follows `omarchy theme set` instead of staying on the fallback above.
+  "~/.local/state/omarchy/current/theme/alacritty.toml",
   # Per-OS font. install.sh links it to fonts/linux.toml or fonts/macos.toml.
   # Fonts cannot live in this file: the importing file wins over its imports.
   "~/.config/alacritty/font.toml",

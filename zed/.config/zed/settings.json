@@ -1,0 +1,126 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run the `open default settings` command
+// from the command palette or from `Zed` application menu.
+//
+// Omarchy notes:
+// - omazed writes the "theme" key through this symlink when the Omarchy theme
+//   changes, so `git diff` can show a theme change after `omarchy theme set`.
+// - The font is Omarchy's, JetBrainsMono Nerd Font. The old FiraCode setup
+//   would fall back because that font is not installed on this machine.
+{
+    "telemetry": {
+        "diagnostics": false,
+        "metrics": false,
+        "anthropic_retention": false,
+    },
+    "debugger": {
+        "button": false,
+    },
+    "cli_default_open_behavior": "existing_window",
+    "outline_panel": {
+        "dock": "right",
+    },
+    "agent": {
+        "dock": "right",
+        "favorite_models": [],
+        "model_parameters": [],
+    },
+    "git_panel": {
+        "dock": "left",
+    },
+    "collaboration_panel": {
+        "button": false,
+        "dock": "right",
+    },
+    "diff_view_style": "split",
+    "agent_servers": {
+        "claude-acp": {
+            "type": "registry",
+        },
+        "codex-acp": {
+            "type": "registry",
+        },
+    },
+    "project_panel": {
+        "dock": "left",
+        "starts_open": false,
+        "entry_spacing": "standard",
+        "auto_reveal_entries": true,
+        "auto_fold_dirs": true,
+        "hide_hidden": false,
+        "hide_gitignore": false,
+        "indent_size": 16,
+    },
+    "helix_mode": true,
+    "relative_line_numbers": "enabled",
+    "cursor_shape": "underline",
+    "soft_wrap": "editor_width",
+    "wrap_guides": [80],
+    "show_wrap_guides": true,
+    "ui_font_family": "JetBrainsMono Nerd Font",
+    "ui_font_size": 14,
+    "buffer_font_family": "JetBrainsMono Nerd Font",
+    "buffer_font_size": 14,
+    "disable_ai": true,
+    "theme": "Omazed",
+    "format_on_save": "on",
+    "tab_size": 4,
+    "hard_tabs": false,
+    "languages": {
+        "Python": {
+            "language_servers": ["ty", "ruff", "!basedpyright"],
+            "formatter": [
+                { "code_action": "source.fixAll.ruff" },
+                { "code_action": "source.organizeImports.ruff" },
+                { "language_server": { "name": "ruff" } },
+            ],
+            "show_completions_on_input": true,
+        },
+        "Rust": {
+            "language_servers": ["rust-analyzer"],
+            "formatter": [{ "language_server": { "name": "rust-analyzer" } }],
+        },
+        "TSX": {
+            "tab_size": 2,
+            "formatter": "prettier",
+        },
+        "LaTeX": {
+            "soft_wrap": "editor_width",
+        },
+    },
+    "lsp": {
+        "pyright": {
+            "settings": {
+                "python.analysis": {
+                    "diagnosticMode": "workspace",
+                },
+                "python": {
+                    "pythonPath": ".venv/bin/python",
+                },
+            },
+        },
+        "ruff": {
+            "initialization_options": {
+                "settings": {
+                    "lineLength": 80,
+                    "showSyntaxErrors": true,
+                    "lint": {
+                        "extendSelect": ["I"],
+                    },
+                },
+            },
+        },
+        "rust-analyzer": {
+            "initialization_options": {
+                "rust": {
+                    "analyzerTargetDir": "target/rust-analyzer",
+                },
+            },
+        },
+    },
+}
