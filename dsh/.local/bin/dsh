@@ -1,0 +1,19 @@
+#!/bin/sh
+# DeepSeek Harness CLI, as Omarchy's default-agent flow sees it.
+#
+# `omarchy agent` launches the default agent. For the harness that launch is
+# `dsh web`, which starts a second server on 127.0.0.1:3080 and dies with
+# EADDRINUSE because dsh-web.service already serves that port. Opening the
+# running UI instead keeps one server, one token, and one harness home.
+#
+# A bare `web` is that launch. Every other argument reaches the real CLI, so an
+# explicit port, profile, or subcommand still means what it says.
+set -u
+
+cli="$HOME/.local/share/dsh/node_modules/.bin/dsh"
+
+if [ "$#" -eq 1 ] && [ "$1" = web ]; then
+  exec "$HOME/.local/bin/dsh-web"
+fi
+
+exec "$cli" "$@"
