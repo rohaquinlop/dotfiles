@@ -2,10 +2,12 @@
 # Open the DeepSeek Harness web UI.
 #
 # The UI is served by dsh-web.service. If the service is stopped, start it and
-# wait for the port. The server requires a per-run token and prints the
-# authenticated URL to its journal, so open that URL instead of the bare
-# address. A browser that still holds a trust cookie also works, but the token
-# URL covers a fresh browser profile.
+# wait for the port. A profile patch edit needs a restart, because the running
+# server keeps the configuration it booted with, so restart first when the
+# profile changed after the service started. The server requires a per-run
+# token and prints the authenticated URL to its journal, so open that URL
+# instead of the bare address. A browser that still holds a trust cookie also
+# works, but the token URL covers a fresh browser profile.
 set -u
 
 base="http://127.0.0.1:3080/"
@@ -13,6 +15,10 @@ base="http://127.0.0.1:3080/"
 is_up() {
   curl -s -o /dev/null --max-time 1 "$base" 2>/dev/null
 }
+
+if "$HOME/.local/bin/dsh-config-stale" >/dev/null 2>&1; then
+  systemctl --user restart dsh-web.service >/dev/null 2>&1 || true
+fi
 
 if ! is_up; then
   systemctl --user start dsh-web.service >/dev/null 2>&1 || true

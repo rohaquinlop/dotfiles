@@ -81,16 +81,13 @@ starts the service if it is stopped, then opens the UI with
 `omarchy-launch-webapp`.
 
 Closing the app window does not stop the service: it keeps serving port 3080
-until logout. Opening the harness again reuses that server, so a profile patch
-change needs **Restart DeepSeek Harness** from the same picker, or:
+until logout. A profile patch edit does not apply to a running server, so the
+launcher checks first: `dsh-config-stale` compares the profile files against
+the service start time, and `dsh-web` restarts the service when they changed.
+Opening the harness after an edit therefore serves the new configuration.
 
-```bash
-systemctl --user restart dsh-web.service
-```
-
-`~/.local/bin/dsh-restart` does both: it restarts the service and reopens the
-UI with the new run token. Closing a tab and reopening it does not reload the
-server configuration.
+`~/.local/bin/dsh-restart` restarts the service and reopens the UI with the new
+run token. Keep it for a stuck server; normal edits do not need it.
 
 `~/.local/bin/dsh-run` waits until Omarchy imports the Hyprland environment
 into the systemd user manager. Commands the harness runs can then use

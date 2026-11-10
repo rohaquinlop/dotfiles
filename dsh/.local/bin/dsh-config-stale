@@ -1,0 +1,37 @@
+#!/bin/sh
+# Exit 0 when the harness profile changed after dsh-web.service started.
+#
+# A profile patch edit needs a server restart: the running process keeps the
+# configuration it booted with. The launcher calls this first, so opening the
+# harness after an edit restarts it instead of serving the old configuration.
+#
+# The comparison uses monotonic seconds. systemd reports its start time as
+# microseconds since boot, and /proc/uptime gives boot time, so no locale
+# formatted date is parsed.
+set -u
+
+profile=${DSH_PROFILE:-web}
+service=dsh-web.service
+
+watched="
+$HOME/.dsh/cordis.patch.yml
+$HOME/.dsh/profiles/$profile/cordis.patch.yml
+$HOME/.dsh/profiles/$profile/package.json
+"
+
+start_us=$(systemctl --user show "$service" -p ActiveEnterTimestampMonotonic --value 2>/dev/null) || exit 1
+[ -n "$start_us" ] || exit 1
+start_s=$((start_us / 1000000))
+
+read -r up _ < /proc/uptime || exit 1
+boot_epoch=$(($(date +%s) - ${up%.*}))
+
+for file in $watched; do
+  [ -f "$file" ] || continue
+  mtime=$(stat -c %Y "$file" 2>/dev/null) || continue
+  if [ $((mtime - boot_epoch)) -gt "$start_s" ]; then
+    exit 0
+  fi
+done
+
+exit 1

@@ -56,7 +56,12 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`). On Omarchy only
   `~/.local/share/dsh/node_modules/.bin/dsh --profile web --no-open` from the
   local npm prefix. `install.sh` enables it but does not start it, because a
   manual `dsh web` may own the port. `~/.local/bin/dsh-web` starts it when
-  needed, then opens the web app. `~/.local/bin/dsh-run` waits for Omarchy to
+  needed, then opens the web app. A profile patch edit does not reach a running
+  server: `~/.local/bin/dsh-config-stale` compares the profile files against the
+  service start time, and `dsh-web` restarts before opening when they changed.
+  Do not expect a running server to pick up `cordis.patch.yml` on its own —
+  disabling a tool through the patch left it working until the next restart.
+  `~/.local/bin/dsh-run` waits for Omarchy to
   import the graphical session environment into the systemd user manager, so
   harness commands can use `hyprctl`. The launcher opens the token URL from
   `journalctl --user -u dsh-web.service`; the bare address returns 401 without
