@@ -148,6 +148,16 @@ enable_user_services() {
         log_warn "could not enable dsh-web.service"
       fi
     fi
+    # The harness is not a package, so nothing else updates it. The timer runs
+    # the staged update; it is safe to start now because it does nothing when
+    # the published version matches the installed one.
+    if [ -f "$HOME/.config/systemd/user/dsh-update.timer" ]; then
+      if systemctl --user enable --now dsh-update.timer >/dev/null 2>&1; then
+        log_ok "dsh-update.timer (daily harness update check)"
+      else
+        log_warn "could not enable dsh-update.timer"
+      fi
+    fi
     return 0
   fi
 

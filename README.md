@@ -88,15 +88,23 @@ The server requires a per-run token and prints the authenticated URL to
 `journalctl --user -u dsh-web.service`. The launcher opens that URL, so a
 fresh browser profile also works.
 
-Update the harness with the same prefix, then restart the service:
+`~/.local/bin/dsh` is the CLI on `PATH`. A bare `dsh web` opens the running UI,
+because Omarchy's default-agent launcher would otherwise start a second server
+on port 3080. Every other argument reaches the real CLI.
+
+`dsh-update.timer` checks npm daily at 04:00 and updates through
+`~/.local/bin/dsh-update`. The updater stages the new version, verifies its
+CLI, stops the service only for the swap, and puts the old tree back when the
+new version does not serve port 3080.
 
 ```bash
-npm install --prefix ~/.local/share/dsh @deepseek-ai/dsh@latest
-systemctl --user restart dsh-web.service
+dsh-update --check      # installed and published version, changes nothing
+dsh-update --now        # update now
+journalctl --user -u dsh-update.service
 ```
 
-Do not run `npx @deepseek-ai/dsh web` while the service is active. Both bind
-port 3080.
+Do not install into `~/.local/share/dsh` while the service is running, and do
+not run `npx @deepseek-ai/dsh web` while the service holds port 3080.
 
 ## Fresh Install (CachyOS + niri)
 

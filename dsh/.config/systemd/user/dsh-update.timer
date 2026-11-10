@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily DeepSeek Harness update check
+
+[Timer]
+# A quiet hour on this machine. Persistent replays a run that downtime skipped,
+# so a laptop that is off at 04:00 still updates on its next boot.
+OnCalendar=*-*-* 04:00
+Persistent=true
+RandomizedDelaySec=10m
+
+[Install]
+WantedBy=timers.target

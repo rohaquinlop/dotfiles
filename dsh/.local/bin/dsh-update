@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+# Update the DeepSeek Harness in place without breaking the running server.
+#
+# The harness lives in ~/.local/share/dsh and dsh-web.service serves it. A plain
+# `npm install` in that directory rewrites files the running server reads, and a
+# failed download leaves a half-updated tree. Both are avoidable: build the new
+# version in a staging directory, verify its CLI, then stop the service for the
+# second the swap takes. If the new version does not serve its port, put the old
+# tree back.
+#
+# Usage: dsh-update [--check] [--now] [--keep]
+#   --check  print the installed and published versions, change nothing
+#   --now    update when the published version differs (default)
+#   --keep   keep the previous tree after a successful update
+set -euo pipefail
+
+package=@deepseek-ai/dsh
+unit=dsh-web.service
+port=3080
+
+root=${DSH_INSTALL_DIR:-$HOME/.local/share/dsh}
+base=$(dirname -- "$root")
+name=$(basename -- "$root")
+stage="$base/$name-next"
+previous="$base/$name-prev"
+lock="$base/$name-update.lock"
+
+mode=now
+keep=0
+for arg in "$@"; do
+  case "$arg" in
+    --check) mode=check ;;
+    --now) mode=now ;;
+    --keep) keep=1 ;;
+    --help | -h)
+      sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *)
+      echo "unknown argument: $arg" >&2
+      exit 2
+      ;;
+  esac
+done
+
+log() { printf '%s\n' "$*"; }
+
+notify() {
+  command -v omarchy-notification-send >/dev/null 2>&1 || return 0
+  omarchy-notification-send "$@" >/dev/null 2>&1 || true
+}
+
+installed_version() {
+  node -p "require('$root/node_modules/$package/package.json').version" 2>/dev/null || echo none
+}
+
+published_version() {
+  npm view "$package" dist-tags.latest 2>/dev/null || true
+}
+
+wait_for_port() {
+  local i
+  for i in $(seq 1 40); do
+    if curl -s -o /dev/null --max-time 1 "http://127.0.0.1:$port/"; then
+      return 0
+    fi
+    sleep 0.5
+  done
+  return 1
+}
+
+installed=$(installed_version)
+published=$(published_version)
+
+if [ -z "$published" ]; then
+  log "dsh-update: cannot reach the npm registry; nothing to do"
+  exit 0
+fi
+
+if [ "$mode" = check ]; then
+  log "installed: $installed"
+  log "published: $published"
+  if [ "$installed" = "$published" ]; then
+    log "update: no"
+  else
+    log "update: yes"
+  fi
+  exit 0
+fi
+
+if [ "$installed" = "$published" ]; then
+  log "dsh-update: $installed is current"
+  exit 0
+fi
+
+# One update at a time: the timer and a manual run can overlap.
+exec 9>"$lock"
+if ! flock -n 9; then
+  log "dsh-update: another update is running"
+  exit 0
+fi
+
+log "dsh-update: updating $installed -> $published"
+
+rm -rf "$stage"
+if ! npm install --prefix "$stage" --no-audit --no-fund "$package@$published"; then
+  log "dsh-update: npm could not install $published"
+  rm -rf "$stage"
+  notify -u critical "DeepSeek Harness update failed" "npm could not install $published. $installed still runs."
+  exit 1
+fi
+
+staged=$("$stage/node_modules/.bin/dsh" --version 2>/dev/null || true)
+if [ "$staged" != "$published" ]; then
+  log "dsh-update: the staged CLI reports '$staged', expected '$published'"
+  rm -rf "$stage"
+  notify -u critical "DeepSeek Harness update failed" "The staged $published does not run. $installed still runs."
+  exit 1
+fi
+
+was_active=$(systemctl --user is-active "$unit" 2>/dev/null || true)
+if [ "$was_active" = active ]; then
+  systemctl --user stop "$unit"
+fi
+
+rm -rf "$previous"
+mv "$root" "$previous"
+mv "$stage" "$root"
+log "dsh-update: $published installed"
+
+if [ "$was_active" = active ]; then
+  systemctl --user start "$unit"
+  if ! wait_for_port; then
+    log "dsh-update: $published did not serve port $port; rolling back"
+    mv "$root" "$stage"
+    mv "$previous" "$root"
+    rm -rf "$stage"
+    systemctl --user start "$unit"
+    notify -u critical "DeepSeek Harness update failed" "$published did not start. Back on $installed."
+    exit 1
+  fi
+fi
+
+if [ "$keep" -eq 1 ]; then
+  log "dsh-update: previous tree kept at $previous"
+else
+  rm -rf "$previous"
+fi
+
+notify "DeepSeek Harness updated" "$installed -> $published. Reopen it from SUPER+SPACE."
+log "dsh-update: done"

@@ -1,0 +1,9 @@
+[Unit]
+Description=Update the DeepSeek Harness in place
+
+[Service]
+Type=oneshot
+# The harness runs on the mise-managed node, and the updater reports through
+# the Omarchy notification helper.
+Environment=PATH=/usr/share/omarchy/bin:%h/.local/share/mise/shims:%h/.local/share/mise/installs/node/latest/bin:%h/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin
+ExecStart=%h/.local/bin/dsh-update --now
