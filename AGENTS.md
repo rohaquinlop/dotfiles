@@ -58,7 +58,8 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`). On Omarchy only
   manual `dsh web` may own the port. `~/.local/bin/dsh-web` starts it when
   needed, then opens the web app. A profile patch edit does not reach a running
   server: `~/.local/bin/dsh-config-stale` compares the profile files against the
-  service start time, and `dsh-web` restarts before opening when they changed.
+  service start time, and `dsh-web` restarts before opening when they changed and
+  no window is attached (`ss` shows an established connection while it is).
   Do not expect a running server to pick up `cordis.patch.yml` on its own —
   disabling a tool through the patch left it working until the next restart.
   `~/.local/bin/dsh-run` waits for Omarchy to

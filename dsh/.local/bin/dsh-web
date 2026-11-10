@@ -16,7 +16,13 @@ is_up() {
   curl -s -o /dev/null --max-time 1 "$base" 2>/dev/null
 }
 
-if "$HOME/.local/bin/dsh-config-stale" >/dev/null 2>&1; then
+# An open app holds an established connection to the port. Restarting under it
+# kills the session, so only restart a stale server when no window is attached.
+clients_connected() {
+  [ -n "$(ss -Htn state established "( sport = :3080 )" 2>/dev/null)" ]
+}
+
+if "$HOME/.local/bin/dsh-config-stale" >/dev/null 2>&1 && ! clients_connected; then
   systemctl --user restart dsh-web.service >/dev/null 2>&1 || true
 fi
 

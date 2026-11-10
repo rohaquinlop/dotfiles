@@ -84,7 +84,8 @@ Closing the app window does not stop the service: it keeps serving port 3080
 until logout. A profile patch edit does not apply to a running server, so the
 launcher checks first: `dsh-config-stale` compares the profile files against
 the service start time, and `dsh-web` restarts the service when they changed.
-Opening the harness after an edit therefore serves the new configuration.
+It restarts only while no window is attached, because a restart under an open
+window ends the session. Close the app, then open it once to take an edit.
 
 `~/.local/bin/dsh-restart` restarts the service and reopens the UI with the new
 run token. Keep it for a stuck server; normal edits do not need it.
