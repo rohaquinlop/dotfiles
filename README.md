@@ -80,6 +80,18 @@ Select **DeepSeek Harness** with `SUPER + SPACE`. `~/.local/bin/dsh-web`
 starts the service if it is stopped, then opens the UI with
 `omarchy-launch-webapp`.
 
+Closing the app window does not stop the service: it keeps serving port 3080
+until logout. Opening the harness again reuses that server, so a profile patch
+change needs **Restart DeepSeek Harness** from the same picker, or:
+
+```bash
+systemctl --user restart dsh-web.service
+```
+
+`~/.local/bin/dsh-restart` does both: it restarts the service and reopens the
+UI with the new run token. Closing a tab and reopening it does not reload the
+server configuration.
+
 `~/.local/bin/dsh-run` waits until Omarchy imports the Hyprland environment
 into the systemd user manager. Commands the harness runs can then use
 `hyprctl` and the Wayland socket.

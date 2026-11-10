@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Restart DeepSeek Harness
+Comment=Restart the harness server and reopen the web UI
+Exec=/home/rohaquinlop/.local/bin/dsh-restart
+Terminal=false
+Type=Application
+Icon=deepseek-harness
+StartupNotify=false
+Categories=Development;

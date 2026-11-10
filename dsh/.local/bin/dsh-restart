@@ -1,0 +1,16 @@
+#!/bin/sh
+# Restart the harness server and open the UI with the new run token.
+#
+# Closing the browser window leaves dsh-web.service running, and the app
+# launcher only starts the service when its port is down. Profile patch edits
+# therefore need this restart, which is also what the update timer uses.
+set -u
+
+if ! systemctl --user restart dsh-web.service; then
+  echo "dsh-restart: could not restart dsh-web.service" >&2
+  exit 1
+fi
+
+# dsh-web waits for the port, reads the new token from the journal, and opens
+# the authenticated URL.
+exec "$HOME/.local/bin/dsh-web"
