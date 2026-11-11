@@ -17,7 +17,7 @@ agent_panel_sort = "priority"
 
 [keys]
 prefix = "ctrl+a"
-switch_tab = "alt+1..9"
+switch_tab = "ctrl+1..9"
 cycle_pane_next = "ctrl+tab"
 cycle_pane_previous = "ctrl+shift+tab"
 
