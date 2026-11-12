@@ -23,11 +23,11 @@ else
   OMARCHY=false
 fi
 
-# Omarchy already owns Hyprland, the bar, the lock screen, btop, herdr and the
-# bash startup files. Share only the personal shell, terminal, prompt, git and
-# editor configs, plus the Caps Lock override.
+# Omarchy already owns Hyprland, the bar, the lock screen, btop and the bash
+# startup files. Share only the personal shell, terminal, prompt, git and
+# editor configs, the herdr user configs, plus the Caps Lock override.
 if $OMARCHY; then
-  STOW_PACKAGES=(zsh alacritty starship git zed hypr dsh)
+  STOW_PACKAGES=(zsh alacritty starship git zed hypr dsh herdr herdr-app omarchy)
 else
   STOW_PACKAGES=(zsh bash alacritty nvim starship btop git gh herdr herdr-app niri config-misc noctalia)
 fi

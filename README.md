@@ -19,10 +19,14 @@ Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | `zed` | `~/.config/zed/` | Zed settings and Helix-style keymap |
 | `hypr` | `~/.config/hypr/input.lua` | Caps Lock: tap Backspace, hold nav layer |
 | `dsh` | `~/.config/systemd/user/`, `~/.local/` | DeepSeek Harness service and app launcher |
+| `herdr` | `~/.config/herdr/` | Herdr TUI config, shared with the MacBook |
+| `herdr-app` | `~/.config/herdr-app/keys.json` | Herdr app keymap, shared with the MacBook |
+| `omarchy` | `~/.local/bin/` | `omarchy-menu-herdr-app-keybindings`: lists the Herdr app keys |
 
-The remaining packages (niri, Noctalia, SDDM, Neovim, btop, herdr, bash) stay
-for the old machine. Omarchy owns its Hyprland defaults, bar, lock screen, btop
-theme, herdr config and bash startup files, so the installer leaves them alone.
+The remaining packages (niri, Noctalia, SDDM, Neovim, btop, bash) stay for the
+old machine. Omarchy owns its Hyprland defaults, bar, lock screen and btop
+theme, so the installer leaves them alone. `herdr`, `herdr-app` and `omarchy`
+are shared, so the app keybindings come from one file on every machine.
 
 ### Omarchy install
 
@@ -147,13 +151,14 @@ niri reloads its configuration automatically after the files change.
 | `btop` | `~/.config/btop/` | CachyOS | System monitor |
 | `git` | `~/.config/git/` | all | Git configuration |
 | `gh` | `~/.config/gh/` | CachyOS | GitHub CLI |
-| `herdr` | `~/.config/herdr/` | CachyOS | Herdr terminal workspace manager |
-| `herdr-app` | `~/.config/herdr-app/keys.json` | MacBook | Herdr desktop app keybindings |
+| `herdr` | `~/.config/herdr/` | all | Herdr terminal workspace manager |
+| `herdr-app` | `~/.config/herdr-app/keys.json` | all | Herdr desktop app keybindings |
 | `config-misc` | `~/.config/`, `~/.local/bin/` | CachyOS | GTK bookmarks, mimeapps, chromium flags, imv, obsidian, WirePlumber audio rules, `hda-analog-output` jack watcher |
 | `noctalia` | `~/.config/noctalia/` | CachyOS | Lock screen: flat dark background with the CachyOS mark, compact login box |
 | `zed` | `~/.config/zed/` | Omarchy | Zed settings and Helix-style keymap |
 | `hypr` | `~/.config/hypr/input.lua` | Omarchy | Caps Lock: tap Backspace, hold nav layer |
 | `dsh` | `~/.config/systemd/user/`, `~/.local/` | Omarchy | DeepSeek Harness user service and app launcher |
+| `omarchy` | `~/.local/bin/` | Omarchy | `omarchy-menu-herdr-app-keybindings`: the Herdr app keys, not the TUI ones |
 
 `lazygit` is installed but intentionally **not** stowed: its config can contain
 credentials. Everything else is symlinked into the repo, so editing a config in

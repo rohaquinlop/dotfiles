@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# omarchy:summary=Display Herdr app keybindings using an interactive search menu.
+# omarchy:args=[--print|-p] [--config <path>]
+#
+# Lists the Herdr desktop app keymap (~/.config/herdr-app/keys.json), so the
+# list matches the keys the app actually runs. The packaged
+# omarchy-menu-herdr-keybindings lists the Herdr TUI (config.toml) keys instead.
+# Bind it with an absolute path: Hyprland's PATH has /usr/bin before
+# ~/.local/bin, so the bare name resolves to the packaged TUI script.
+
+print_only=false
+keys_file="${HERDR_APP_KEYS:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr-app/keys.json}"
+
+while (($#)); do
+  case "$1" in
+    --print|-p)
+      print_only=true
+      ;;
+    --config)
+      shift
+      keys_file="$1"
+      ;;
+    *)
+      keys_file="$1"
+      ;;
+  esac
+
+  shift
+done
+
+# The app reads cmd and super as the same modifier, and only macOS delivers it.
+# On Linux such a binding never fires, so leave it off the list.
+hide_cmd=1
+[[ $(uname -s) == "Darwin" ]] && hide_cmd=0
+
+output_keybindings() (
+  set -o pipefail
+  jq -r 'to_entries[] | .key as $section | .value | to_entries[] | "\($section)\t\(.key)\t\(.value)"' "$keys_file" |
+    awk -F'\t' -v hide_cmd="$hide_cmd" '
+# A key is modifier names and a key name joined by hyphens: "ctrl-shift-t".
+# A trailing empty part means the key itself is "-", as in "ctrl--".
+function key_text(key,   count, parts, i, out) {
+  count = split(key, parts, "-")
+  out = parts[count]
+
+  if (out == "") {
+    out = "-"
+    count--
+  }
+
+  if (out ~ /^[a-z]/) out = toupper(substr(out, 1, 1)) substr(out, 2)
+
+  for (i = count - 1; i >= 1; i--) out = toupper(parts[i]) " + " out
+
+  return out
+}
+
+function describe(action,   text) {
+  text = action
+  gsub(/[.:]/, " ", text)
+
+  return toupper(substr(text, 1, 1)) substr(text, 2)
+}
+
+function unbound_here(key,   count, parts, i) {
+  if (!hide_cmd) return 0
+
+  count = split(key, parts, "-")
+  for (i = 1; i <= count; i++) if (parts[i] == "cmd") return 1
+
+  return 0
+}
+
+{
+  if (unbound_here($2)) next
+
+  text = describe($3)
+  if ($1 != "global") text = text " [" $1 "]"
+
+  printf "%-28s → %s\n", key_text($2), text
+}
+'
+)
+
+if [[ $print_only == "true" ]]; then
+  output_keybindings
+  exit 0
+fi
+
+records=$(output_keybindings)
+
+monitor_height=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.focused == true) | .height' 2>/dev/null)
+
+if [[ ! $monitor_height =~ ^[0-9]+$ ]] || ((monitor_height <= 0)); then
+  monitor_height=900
+fi
+
+menu_height=$((monitor_height * 40 / 100))
+printf '%s\n' "$records" | omarchy-menu-select "$(omarchy-i18n keybindings.herdrTitle)" -- --width 800 --height "$menu_height" >/dev/null || true
