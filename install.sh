@@ -29,7 +29,7 @@ fi
 if $OMARCHY; then
   STOW_PACKAGES=(zsh alacritty starship git zed hypr dsh)
 else
-  STOW_PACKAGES=(zsh bash alacritty nvim starship btop git gh herdr niri config-misc noctalia)
+  STOW_PACKAGES=(zsh bash alacritty nvim starship btop git gh herdr herdr-app niri config-misc noctalia)
 fi
 
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"

@@ -148,6 +148,7 @@ niri reloads its configuration automatically after the files change.
 | `git` | `~/.config/git/` | all | Git configuration |
 | `gh` | `~/.config/gh/` | CachyOS | GitHub CLI |
 | `herdr` | `~/.config/herdr/` | CachyOS | Herdr terminal workspace manager |
+| `herdr-app` | `~/.config/herdr-app/keys.json` | MacBook | Herdr desktop app keybindings |
 | `config-misc` | `~/.config/`, `~/.local/bin/` | CachyOS | GTK bookmarks, mimeapps, chromium flags, imv, obsidian, WirePlumber audio rules, `hda-analog-output` jack watcher |
 | `noctalia` | `~/.config/noctalia/` | CachyOS | Lock screen: flat dark background with the CachyOS mark, compact login box |
 | `zed` | `~/.config/zed/` | Omarchy | Zed settings and Helix-style keymap |
