@@ -68,7 +68,7 @@ Non-stowed files (require `sudo cp`, handled by `install.sh`). On Omarchy only
   `journalctl --user -u dsh-web.service`; the bare address returns 401 without
   a trust cookie. The unit has a `ConditionPathExists` guard for the external
   npm install.
-- **Caps Lock is Backspace through keyd.** `system/keyd/default.conf` maps it
+- **Caps Lock taps Backspace and holds a h/j/k/l arrow layer through keyd.** `system/keyd/default.conf` maps it
   below the compositor, so the TTY and the desktop share one mapping.
   `install.sh` copies it to `/etc/keyd/` and enables `keyd.service` on both
   machines. `hypr/.config/hypr/input.lua` keeps `caps:backspace` as a Hyprland

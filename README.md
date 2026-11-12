@@ -17,7 +17,7 @@ Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | `starship` | `~/.config/starship.toml` | Prompt (catppuccin mocha) |
 | `git` | `~/.config/git/` | Git configuration and identity |
 | `zed` | `~/.config/zed/` | Zed settings and Helix-style keymap |
-| `hypr` | `~/.config/hypr/input.lua` | Caps Lock → Backspace |
+| `hypr` | `~/.config/hypr/input.lua` | Caps Lock: tap Backspace, hold nav layer |
 | `dsh` | `~/.config/systemd/user/`, `~/.local/` | DeepSeek Harness service and app launcher |
 
 The remaining packages (niri, Noctalia, SDDM, Neovim, btop, herdr, bash) stay
@@ -38,9 +38,9 @@ alacritty font, installs the keyd config, enables `keyd.service` and
 `dsh-web.service`, and reloads Hyprland. The package step, `chsh` and the
 keyd step ask for your password.
 
-### Caps Lock → Backspace
+### Caps Lock: tap Backspace, hold nav
 
-`system/keyd/default.conf` maps Caps Lock to Backspace below the compositor.
+`system/keyd/default.conf` taps Caps Lock to Backspace and holds a h/j/k/l nav layer below the compositor.
 The desktop and the TTY then share one mapping. `install.sh` copies the file to
 `/etc/keyd/` and enables `keyd.service`. `hypr/.config/hypr/input.lua` keeps
 `kb_options = "caps:backspace"` as a Hyprland fallback for when keyd is
@@ -152,7 +152,7 @@ niri reloads its configuration automatically after the files change.
 | `config-misc` | `~/.config/`, `~/.local/bin/` | CachyOS | GTK bookmarks, mimeapps, chromium flags, imv, obsidian, WirePlumber audio rules, `hda-analog-output` jack watcher |
 | `noctalia` | `~/.config/noctalia/` | CachyOS | Lock screen: flat dark background with the CachyOS mark, compact login box |
 | `zed` | `~/.config/zed/` | Omarchy | Zed settings and Helix-style keymap |
-| `hypr` | `~/.config/hypr/input.lua` | Omarchy | Caps Lock → Backspace |
+| `hypr` | `~/.config/hypr/input.lua` | Omarchy | Caps Lock: tap Backspace, hold nav layer |
 | `dsh` | `~/.config/systemd/user/`, `~/.local/` | Omarchy | DeepSeek Harness user service and app launcher |
 
 `lazygit` is installed but intentionally **not** stowed: its config can contain
@@ -653,7 +653,7 @@ only the background, the mark and the panel shape come from this package.
 Copied with `sudo` by `install.sh` (not symlinked). Only `/etc/keyd` is
 installed on both machines; the rest is CachyOS + niri only:
 
-- `/etc/keyd/default.conf` — Caps Lock → Backspace, via `keyd.service`
+- `/etc/keyd/default.conf` — Caps Lock tap Backspace, hold h/j/k/l nav layer, via `keyd.service`
 - `/etc/udev/rules.d/59-vial.rules`, `/etc/udev/rules.d/99-vial.rules` — Vial keyboard access
 - `/etc/modules-load.d/i2c-dev.conf` — loads `i2c-dev` so `ddcutil` can set the external monitor's brightness
 - `/usr/local/bin/mkinitcpio` — warns when Limine boot entries need `limine-mkinitcpio`
