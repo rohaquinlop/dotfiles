@@ -29,3 +29,9 @@
 [user]
 	name = Robin Quintero
 	email = rohaquinlop301@gmail.com
+[credential "https://github.com"]
+	helper = 
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !gh auth git-credential
