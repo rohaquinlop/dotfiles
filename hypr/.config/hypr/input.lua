@@ -6,8 +6,15 @@
 -- (fcitx5 + ~/.XCompose) stop working. The layout still comes from
 -- /etc/vconsole.conf, which Omarchy's default input config reads.
 hl.config({
-  input = {
-    kb_options = "caps:backspace",
-    natural_scroll = true
-  },
+    -- general = {
+    --     layout = "scrolling",
+    -- },
+    input = {
+        kb_layout = "us",
+        kb_options = "caps:backspace",
+
+        touchpad = {
+            natural_scroll = true,
+        }
+    },
 })
