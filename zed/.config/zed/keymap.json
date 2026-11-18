@@ -5,7 +5,7 @@
         "context": "Editor && (vim_mode == helix_normal || vim_mode == helix_select)",
         "bindings": {
             // From ~/.config/helix/config.toml
-            "cmd-d": "editor::SelectNext",
+            "ctrl-d": "editor::SelectNext",
             "ctrl-j": "vim::ScrollDown",
             "ctrl-k": "vim::ScrollUp",
             "alt-j": "editor::MoveLineDown",
