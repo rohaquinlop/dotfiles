@@ -206,3 +206,6 @@ _source_first \
   /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
   /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
+
+# opencode
+export PATH="$HOME/.opencode/bin:$PATH"
